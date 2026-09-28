@@ -5,3 +5,11 @@ node_modules
 Generate-SamsungIdentity.ps1
 package-lock.json
 package.json
+
+# Donor Profile dumps and archives
+GalaxyBook-DonorProfile/
+GalaxyBook-DonorProfile*/
+GalaxyBook-DonorProfile*.zip
+DolbyDrivers/
+GalaxyBook-DolbyDrivers/
+*DolbyDrivers*

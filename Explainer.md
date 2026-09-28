@@ -309,3 +309,40 @@ Copy-Item .\tests\fixtures\config.plist $env:TEMP\gbe-config-test.plist -Force; 
 ```powershell
 Invoke-Pester -Script .\tests\Install-Configuration.Tests.ps1 -EnableExit
 ```
+
+## Donor Profile Export
+
+### Standard export (with ZIP archive)
+
+Run on an authentic Galaxy Book to capture sanitized SMBIOS, registry, drivers, and app manifests:
+
+```powershell
+.\Export-GalaxyBookDonorProfile.ps1 -Zip
+```
+
+### Export with full DriverStore packages
+
+```powershell
+.\Export-GalaxyBookDonorProfile.ps1 -IncludeDrivers -Zip
+```
+
+### Autonomous / Non-interactive export
+
+```powershell
+.\Export-GalaxyBookDonorProfile.ps1 -NonInteractive -Zip
+```
+
+## Connected Devices (Storage Share & Camera Share)
+
+Samsung Settings (`SamsungSettings.dll` / `ExtensionCommon.dll`) checks device capabilities via `ComputerSystemInfo`:
+- `StorageSharingVM.Support()` requires `GBVersion >= 3` (Galaxy Book3 or newer)
+- `CameraSharingVM.Support()` requires `GBVersion >= 4` (Galaxy Book4 or newer) or Intel Arrow Lake architecture
+
+Because Samsung Settings queries WMI `Win32_ComputerSystem` and caches `SystemFamily`, `Product`, `ManufacturerName`, and `SystemSKU` inside its UWP `ApplicationData.Current.LocalSettings`, non-Samsung motherboards return generic strings (e.g. `Default string`), resulting in `GBVersion = -1` and hiding both features from the **Connected Devices** menu.
+
+Galaxy Book Enabler automatically:
+1. Injects the authentic `Galaxy Book4` identity into Samsung Settings' UWP `LocalSettings` via `ApplicationDataManager`
+2. Configures `HKLM\SOFTWARE\Samsung\StorageShare` (`DriveMap`, `VirtualDriveMap`)
+3. Registers `HKLM\SOFTWARE\Samsung\StudioMode\Settings` virtual camera redirection (`ROOT#CAMERASHAREDRIVERSOURCE`)
+4. Sets `SamsungStorageShareService` and `SamsungCameraShareService` to `Automatic` and starts them
+
