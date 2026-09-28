@@ -17,11 +17,12 @@
 
 Galaxy Book Enabler spoofs your Windows PC as a Samsung Galaxy Book, unlocking access to Samsung's ecosystem apps like Quick Share, Multi Control, Samsung Notes, and more. The tool provides an intelligent installer with package filtering, Wi-Fi compatibility detection, and automated startup configuration.
 
-> **See what's new:** [Changelog](CHANGELOG.md) | [Explainer](Explainer.md) | [Releases](https://github.com/Bananz0/GalaxyBookEnabler/releases)
+> **See what's new:** [Changelog](CHANGELOG.md) | [Explainer](Explainer.md) | [Dolby Atmos (Experimental)](DOLBY.md) | [Releases](https://github.com/Bananz0/GalaxyBookEnabler/releases)
 
 ## Features
 
 - **21 Galaxy Book Models** - Choose from authentic hardware profiles (Galaxy Book3/4/5, Pro, Ultra, 360)
+- **Dolby Atmos Audio (Experimental)** - Enable genuine Galaxy Book Dolby DAX3 audio processing, Dynamic profile, and Dolby Access integration (see [DOLBY.md](DOLBY.md))
 - **Samsung MultiPoint Support** - Connect Galaxy Buds to multiple devices seamlessly via Samsung Settings app. 
   - **Requirements**: Install the **SSSE patch** and the **Core** package selection (includes Samsung Settings, Settings Runtime, and the Galaxy Buds app). 
 - **Auto-Elevation** - Automatically requests admin rights using native sudo 
