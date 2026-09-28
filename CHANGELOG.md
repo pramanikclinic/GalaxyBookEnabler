@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Fixed Package Name Collision** - Disambiguated `SamsungSettings` (`SamsungSettings1.5`) from `SamsungSettingsRuntime` and mapped `SamsungCloud` (`SamsungCloudPlatformManag`) in `Install-SamsungPackages` to ensure the Samsung Settings app is never falsely skipped as already installed
 - **Aligned SSSE Catalog Version** - Kept `$LATEST_SSSE_VERSION = "8.0.5.0"` matching Microsoft Update Catalog published driver availability
 - **Updated Model Blueprints** - Refreshed `750XGK` (Galaxy Book4) to `P11CFP.025.251116.HQ` and `960XHA` (Galaxy Book5 Pro) to `P05AMA.058.250810.01` with authentic BIOS samples
+- **Reorganized Package Tiers** - Promoted **Samsung Phone** to the `Recommended` tier following complete bypass fixes (calls and SMS working), and moved **AI Select** and **Samsung Gallery** to `Recommended Plus`
 
 ## [3.1.5] - 2026-03-19
 

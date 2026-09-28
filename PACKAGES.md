@@ -32,6 +32,7 @@ These packages are essential for Samsung ecosystem functionality and are auto-in
 | Camera Share | 9NPCS7FN6VB9 | ✅ Yes | Use phone camera with PC apps |
 | Storage Share | 9MVNW0XH7HS5 | ✅ Yes | Share storage between devices |
 | Multi Control | 9N3L4FZ03Q99 | ✅ Yes | Control devices with one keyboard/mouse. |
+| Samsung Phone | 9MWJXXLCHBGK | ❌ No | Phone app integration (calls and messages) |
 | Samsung Flow | 9NBLGGH5GB0M | ❌ No | Phone-PC integration |
 | Nearby Devices | 9PHL04NJNT67 | ❌ No | Manage and connect to nearby Samsung devices |
 | Second Screen | 9PLTXW5DX5KB | ✅ Yes | Use tablet as secondary display. Works on Wi-Fi 6/6E/7, not on Wi-Fi 5 |
@@ -58,13 +59,7 @@ These packages are essential for Samsung ecosystem functionality and are auto-in
 | Package | Store ID | Description | Notes |
 |---------|----------|-------------|-------|
 | Samsung Notes | 9NBLGGH43VHV | Note-taking with stylus support | |
-| AI Select | 9PM11FHJQLZ4 | Smart screenshot tool with text extraction and AI features | |
 | Second Screen | 9PLTXW5DX5KB | Use tablet as secondary display | |
-
-### Media
-| Package | Store ID | Description |
-|---------|----------|-------------|
-| Samsung Gallery | 9NBLGGH4N9R9 | Photo/video gallery with cloud sync |
 
 ### Accessories
 | Package | Store ID | Description |
@@ -83,6 +78,7 @@ These packages are essential for Samsung ecosystem functionality and are auto-in
 ### Media
 | Package | Store ID | Description |
 |---------|----------|-------------|
+| Samsung Gallery | 9NBLGGH4N9R9 | Photo/video gallery with cloud sync |
 | Samsung Studio | 9P312B4TZFFH | Photo and video editing suite |
 | Samsung Studio for Gallery | 9NND8BT5WFC5 | Gallery-integrated editing tools |
 | Live Wallpaper | 9N1G7F25FXCB | Animated wallpapers |
@@ -90,6 +86,7 @@ These packages are essential for Samsung ecosystem functionality and are auto-in
 ### Productivity
 | Package | Store ID | Description | Notes |
 |---------|----------|-------------|-------|
+| AI Select | 9PM11FHJQLZ4 | Smart screenshot tool with text extraction and AI features | |
 | Samsung Screen Recorder | 9P5025MM7WDT | Screen recording with annotations | Shows "optimized for Galaxy Books" message but works normally |
 
 ### Connectivity
@@ -121,7 +118,6 @@ These packages install successfully but require additional configuration to func
 | Package | Store ID | Description | Notes |
 |---------|----------|-------------|-------|
 | Samsung Device Care | 9NBLGGH4XDV0 | Device optimization and diagnostics | Requires additional setup to function |
-| Samsung Phone | 9MWJXXLCHBGK | Phone app integration | Additional setup required |
 | Samsung Find | 9MWD59CZJ1RN | Find your devices | Additional setup required |
 | Quick Search | 9N092440192Z | System-wide search | Additional setup required |
 
@@ -164,27 +160,26 @@ Deprecated versions - use newer alternatives instead.
 - Samsung Bluetooth Sync
 - Galaxy Book Experience
 
-### Recommended (20 packages)
+### Recommended (19 packages)
 Core + essential working Samsung apps:
 - Quick Share, Camera Share, Storage Share
 - Multi Control, Nearby Devices
-- Notes, AI Select, Second Screen
-- Gallery
+- Notes, Samsung Phone, Second Screen
 - Galaxy Buds
 - Samsung Pass
 
-### Recommended Plus (27 packages)
+### Recommended Plus (29 packages)
 Recommended + additional working apps:
+- AI Select, Samsung Gallery
 - Samsung Studio, Studio for Gallery
 - Screen Recorder
 - Samsung Flow, SmartThings
 - Parental Controls, Live Wallpaper
 - Galaxy Book Smart Switch
 
-### Full Experience (31 packages)
+### Full Experience (32 packages)
 Recommended Plus + apps requiring extra setup:
 - Samsung Device Care
-- Samsung Phone
 - Samsung Find
 - Quick Search
 
@@ -202,9 +197,9 @@ Pick individual packages by category with full control over what gets installed.
 
 - **Total Packages**: 35
 - **Core (Required)**: 9
-- **Recommended (Essential)**: 11
-- **Recommended Plus (Additional)**: 8
-- **Requires Extra Steps**: 4
+- **Recommended (Essential)**: 10
+- **Recommended Plus (Additional)**: 10
+- **Requires Extra Steps**: 3
 - **Non-Working**: 2
 - **Legacy**: 1
 

@@ -3476,18 +3476,10 @@ $script:PackageDatabase = @{
             Status      = "Working"
         },
         @{
-            Name        = "AI Select"
-            Id          = "9PM11FHJQLZ4"
-            Category    = "Productivity"
-            Description = "Smart screenshot tool with text extraction and AI features"
-            Status      = "Working"
-            Tip         = "TIP: If you have a Windows Precision Touchpad, you can configure the 4-finger tap gesture to launch AI Select via Settings > Bluetooth & devices > Touchpad > Advanced gestures"
-        },
-        @{
-            Name        = "Samsung Gallery"
-            Id          = "9NBLGGH4N9R9"
-            Category    = "Media"
-            Description = "Photo and video gallery with cloud sync"
+            Name        = "Samsung Phone"
+            Id          = "9MWJXXLCHBGK"
+            Category    = "Connectivity"
+            Description = "Phone app integration (calls and messages)"
             Status      = "Working"
         },
         @{
@@ -3516,6 +3508,21 @@ $script:PackageDatabase = @{
     
     # RECOMMENDED PLUS PACKAGES - Additional working apps for full experience
     RecommendedPlus = @(
+        @{
+            Name        = "AI Select"
+            Id          = "9PM11FHJQLZ4"
+            Category    = "Productivity"
+            Description = "Smart screenshot tool with text extraction and AI features"
+            Status      = "Working"
+            Tip         = "TIP: If you have a Windows Precision Touchpad, you can configure the 4-finger tap gesture to launch AI Select via Settings > Bluetooth & devices > Touchpad > Advanced gestures"
+        },
+        @{
+            Name        = "Samsung Gallery"
+            Id          = "9NBLGGH4N9R9"
+            Category    = "Media"
+            Description = "Photo and video gallery with cloud sync"
+            Status      = "Working"
+        },
         @{
             Name        = "Samsung Studio"
             Id          = "9P312B4TZFFH"
@@ -3584,14 +3591,6 @@ $script:PackageDatabase = @{
             Description = "Device optimization and diagnostics"
             Status      = "RequiresExtraSteps"
             Note        = "Requires additional setup to function properly"
-        },
-        @{
-            Name        = "Samsung Phone"
-            Id          = "9MWJXXLCHBGK"
-            Category    = "Connectivity"
-            Description = "Phone app integration"
-            Status      = "RequiresExtraSteps"
-            Warning     = "Requires additional configuration steps to work properly"
         },
         @{
             Name        = "Samsung Find"

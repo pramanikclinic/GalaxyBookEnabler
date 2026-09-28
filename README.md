@@ -161,31 +161,38 @@ Essential packages for basic Samsung ecosystem functionality:
 
 ### Recommended
 
-Core packages + all fully working Samsung apps:
+Core packages + essential working Samsung apps:
 
 - Quick Share (requires Intel Wi-Fi for best results)
-- Samsung Notes
+- Camera Share
+- Storage Share
 - Multi Control
+- Nearby Devices
+- Samsung Notes
+- Samsung Phone
+- Second Screen
+- Galaxy Buds Manager
+- Samsung Pass
+
+### Recommended Plus
+
+Recommended + additional working apps:
+
+- AI Select
 - Samsung Gallery
 - Samsung Studio + Studio for Gallery
 - Samsung Screen Recorder
 - Samsung Flow
 - SmartThings
-- Galaxy Buds Manager
 - Samsung Parental Controls
-- AI Select
-- Nearby Devices
-- Storage Share
-- Second Screen
 - Live Wallpaper
 - Galaxy Book Smart Switch
-- Samsung Pass
 
 ### Full Experience
 
-Recommended + apps requiring extra configuration:
+Recommended Plus + apps requiring extra configuration:
 
-- Samsung Phone (needs additional setup)
+- Samsung Device Care (needs additional setup)
 - Samsung Find (needs additional setup)
 - Quick Search (needs additional setup)
 
@@ -216,6 +223,7 @@ Pick individual packages by category with detailed descriptions and warnings.
 | Camera Share | ✅ Working |**Yes**| Requires Intel Wi-Fi AX + Intel Bluetooth |
 | Samsung Notes | ✅ Working | No | - |
 | Multi Control | 🔍 Investigating | **Yes** | Under investigation - works intermittently, not reliable on any Wi-Fi |
+| Samsung Phone | ✅ Working | No | Calls & messages integration |
 | Samsung Gallery | ✅ Working | No | - |
 | Samsung Studio | ✅ Working | No | - |
 | Samsung Studio for Gallery | ✅ Working | No | - |
@@ -232,7 +240,6 @@ Pick individual packages by category with detailed descriptions and warnings.
 | Galaxy Book Smart Switch | ✅ Working | No | - |
 | Samsung Pass | ✅ Working | No | - |
 | Samsung Device Care | ⚠️ Extra Steps | No | May not function properly |
-| Samsung Phone | ⚠️ Extra Steps | No | Configuration required |
 | Samsung Find | ⚠️ Extra Steps | No | Configuration required |
 | Quick Search | ⚠️ Extra Steps | No | Configuration required |
 | Samsung Recovery | ❌ Not Working | No | Requires genuine hardware |

@@ -336,7 +336,7 @@ Describe 'Install-GalaxyBookEnabler.ps1 autonomous package resolution' {
 
         $result.ExitCode | Should Be 0
         $result.Stdout | Should Match 'Samsung Device Care'
-        $result.Stdout | Should Match 'Samsung Phone'
+        $result.Stdout | Should Match 'Samsung Find'
     }
 
     It 'supports custom packages by id and name' {
