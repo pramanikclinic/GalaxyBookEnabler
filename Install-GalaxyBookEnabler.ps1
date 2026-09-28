@@ -221,10 +221,13 @@ function Start-GalaxyBookEnablerScript {
         return $LASTEXITCODE
     }
 
-    $sudoPath = Get-Command sudo -ErrorAction SilentlyContinue
+    $sudoPath = Get-Command sudo.exe -ErrorAction SilentlyContinue
     if ($sudoPath) {
-        & sudo pwsh @launchArgs
-        return $LASTEXITCODE
+        $sudoCheck = & sudo.exe config 2>&1 | Out-String
+        if ($sudoCheck -notmatch "disabled") {
+            & sudo.exe pwsh @launchArgs
+            return $LASTEXITCODE
+        }
     }
 
     $quotedLaunchArgs = ConvertTo-StartProcessArguments -Arguments $launchArgs
@@ -404,14 +407,17 @@ if ((-not $script:IsConfigurationOnly) -and (-not $isAdmin)) {
         exit $exitCode
     }
     
-    # Try sudo (Windows 11 24H2+ native sudo)
-    $sudoPath = Get-Command sudo -ErrorAction SilentlyContinue
+    # Try sudo (Windows 11 24H2+ native sudo) if enabled
+    $sudoPath = Get-Command sudo.exe -ErrorAction SilentlyContinue
     if ($sudoPath) {
-        Write-Host "  Using Windows sudo for elevation..." -ForegroundColor Gray
-        & sudo pwsh @elevatedArgs
-        $exitCode = $LASTEXITCODE
-        Remove-Item -LiteralPath $tempScript -Force -ErrorAction SilentlyContinue
-        exit $exitCode
+        $sudoCheck = & sudo.exe config 2>&1 | Out-String
+        if ($sudoCheck -notmatch "disabled") {
+            Write-Host "  Using Windows sudo for elevation..." -ForegroundColor Gray
+            & sudo.exe pwsh @elevatedArgs
+            $exitCode = $LASTEXITCODE
+            Remove-Item -LiteralPath $tempScript -Force -ErrorAction SilentlyContinue
+            exit $exitCode
+        }
     }
     
     # Fallback to native UAC (Start-Process -Verb RunAs)
@@ -574,7 +580,7 @@ $GalaxyBookModelBlueprints = [ordered]@{
     '750QHA' = @{ FamilyKey = 'Book5360'; BIOSVersionSample = 'P04RHG.270.250515.SX'; BIOSMajorRelease = 5; BIOSMinorRelease = 32; Segment = 'A5A5'; Config = 'A5A5'; Platform = 'LNLM'; BiosCode = 'RHG'; BoardSuffix = 'KA1'; BoardRegion = 'US'; SupportsRegionBoard = $true; EnclosureKind = 31 }
     '750XFG' = @{ FamilyKey = 'Book3'; BIOSVersionSample = 'P09CFL.030.241212.HQ'; BIOSMajorRelease = 5; BIOSMinorRelease = 27; Segment = 'A5A5'; Config = 'A5A5'; Platform = 'RPLP'; BiosCode = 'CFL'; BoardSuffix = 'KA3'; BoardRegion = 'SE'; SupportsRegionBoard = $true; EnclosureKind = 10 }
     '750XFH' = @{ FamilyKey = 'Book3'; BIOSVersionSample = 'P09CFM.030.241212.HQ'; BIOSMajorRelease = 5; BIOSMinorRelease = 27; Segment = 'A5A5'; Config = 'A5A5'; Platform = 'RPLP'; BiosCode = 'CFM'; BoardSuffix = 'XF1'; BoardRegion = 'BR'; SupportsRegionBoard = $true; EnclosureKind = 10 }
-    '750XGK' = @{ FamilyKey = 'Book4'; BIOSVersionSample = 'P02CFP.015.240409.HQ'; BIOSMajorRelease = 5; BIOSMinorRelease = 27; Segment = 'A5A5'; Config = 'A5A5'; Platform = 'RPLU'; BiosCode = 'CFP'; BoardSuffix = 'KG1'; BoardRegion = 'IT'; SupportsRegionBoard = $true; EnclosureKind = 10 }
+    '750XGK' = @{ FamilyKey = 'Book4'; BIOSVersionSample = 'P11CFP.025.251116.HQ'; BIOSMajorRelease = 5; BIOSMinorRelease = 27; Segment = 'A5A5'; Config = 'A5A5'; Platform = 'RPLU'; BiosCode = 'CFP'; BoardSuffix = 'KG1'; BoardRegion = 'IT'; SupportsRegionBoard = $true; EnclosureKind = 10 }
     '750XGL' = @{ FamilyKey = 'Book4'; BIOSVersionSample = 'P07CFP.020.250208.HQ'; BIOSMajorRelease = 5; BIOSMinorRelease = 27; Segment = 'A5A5'; Config = 'A5A5'; Platform = 'RPLU'; BiosCode = 'CFP'; BoardSuffix = 'XG1'; BoardRegion = 'BR'; SupportsRegionBoard = $true; EnclosureKind = 10 }
     '930SBE' = @{ FamilyKey = 'Notebook9Series'; BIOSVendor = 'American Megatrends Inc.'; BIOSVersionSample = 'P07AGW.046.230519.SH'; BIOSMajorRelease = 5; BIOSMinorRelease = 13; Segment = 'A5A5'; Config = 'A5A5'; Platform = 'A5A5'; BiosCode = 'AGW'; ProductName = '930SBE/931SBE/930SBV'; BoardPrefix = 'NT'; BoardSuffix = 'K716'; SupportsRegionBoard = $false; EnclosureKind = 31 }
     '930XDB' = @{ FamilyKey = 'GalaxyBookSeries'; BIOSVersionSample = 'P13RFX.071.240415.SP'; BIOSMajorRelease = 5; BIOSMinorRelease = 19; Segment = 'A5A5'; Config = 'A5A5'; Platform = 'TGL3'; BiosCode = 'RFX'; ProductName = '930XDB/931XDB/930XDY'; BoardSuffix = 'KF6'; BoardRegion = 'IT'; SupportsRegionBoard = $true; EnclosureKind = 10 }
@@ -589,7 +595,7 @@ $GalaxyBookModelBlueprints = [ordered]@{
     '960XFH' = @{ FamilyKey = 'Book3Ultra'; BIOSVersionSample = 'P07ALQ.190.240418.PS'; BIOSMajorRelease = 5; BIOSMinorRelease = 27; Segment = 'ICPS'; Config = 'A5A5'; Platform = 'RPLH'; BiosCode = 'ALQ'; BoardSuffix = 'XA2'; BoardRegion = 'BR'; SupportsRegionBoard = $true; EnclosureKind = 10 }
     '960XGK' = @{ FamilyKey = 'Book4Pro'; BIOSVersionSample = 'P12RHA.550.241030.04'; BIOSMajorRelease = 5; BIOSMinorRelease = 32; Segment = 'PROT'; Config = 'A5A5'; Platform = 'MTLH'; BiosCode = 'RHA'; BoardSuffix = 'KG1'; BoardRegion = 'UK'; SupportsRegionBoard = $true; EnclosureKind = 10 }
     '960XGL' = @{ FamilyKey = 'Book4Ultra'; BIOSVersionSample = 'P08ALX.400.250306.05'; BIOSMajorRelease = 5; BIOSMinorRelease = 32; Segment = 'PROT'; Config = 'A5A5'; Platform = 'MTLH'; BiosCode = 'ALX'; BoardSuffix = 'XG2'; BoardRegion = 'BR'; SupportsRegionBoard = $true; EnclosureKind = 10 }
-    '960XHA' = @{ FamilyKey = 'Book5Pro'; BIOSVersionSample = 'P05AMA.140.250210.01'; BIOSMajorRelease = 5; BIOSMinorRelease = 32; Segment = 'PROT'; Config = 'A5A5'; Platform = 'LNLM'; BiosCode = 'AMA'; BoardSuffix = 'KG2'; BoardRegion = 'DE'; SupportsRegionBoard = $true; EnclosureKind = 10 }
+    '960XHA' = @{ FamilyKey = 'Book5Pro'; BIOSVersionSample = 'P05AMA.058.250810.01'; BIOSMajorRelease = 5; BIOSMinorRelease = 32; Segment = 'PROT'; Config = 'A5A5'; Platform = 'LNLM'; BiosCode = 'AMA'; BoardSuffix = 'KG2'; BoardRegion = 'DE'; SupportsRegionBoard = $true; EnclosureKind = 10 }
 }
 
 
@@ -2030,11 +2036,18 @@ function Test-InstallationHealth {
     }
     
     # Determine installation state
+    # A valid GBE installation must have at least one core component (Config, Scheduled Task, or Service)
+    $hasGbeCore = $health.Components.Config -or $health.Components.Task -or $health.Components.Service
     if ($health.ComponentCount -eq 4) {
         $health.IsHealthy = $true
     }
-    elseif ($health.ComponentCount -gt 0 -and $health.ComponentCount -lt 4) {
+    elseif ($hasGbeCore) {
         $health.IsBroken = $true
+    }
+    else {
+        # Only an orphaned folder or no components at all -> Not an active GBE installation
+        $health.IsHealthy = $false
+        $health.IsBroken = $false
     }
     
     return $health
@@ -2904,7 +2917,9 @@ function Clear-SamsungSystemData {
         "SamsungMultiControl"        = @{ ClearAll = $true; DeviceFilesOnly = $false }
         "QuickShare"                 = @{ ClearAll = $true; DeviceFilesOnly = $false }
         "StorageShare"               = @{ ClearAll = $true; DeviceFilesOnly = $false }
+        "CameraShare"                = @{ ClearAll = $true; DeviceFilesOnly = $false }
         "CameraSharing"              = @{ ClearAll = $true; DeviceFilesOnly = $false }
+        "MachineTranslation"         = @{ ClearAll = $true; DeviceFilesOnly = $false }
         "GBExperienceSvc"            = @{ ClearAll = $true; DeviceFilesOnly = $false }
         "AISelectService"            = @{ ClearAll = $true; DeviceFilesOnly = $false }
         "Intelligence Voice Service" = @{ ClearAll = $true; DeviceFilesOnly = $false }
@@ -3023,7 +3038,7 @@ function Clear-AllSamsungData {
     $packagesPath = "$env:LOCALAPPDATA\Packages"
     if (Test-Path $packagesPath) {
         $samsungPackageFolders = Get-ChildItem $packagesPath -Directory -ErrorAction SilentlyContinue | 
-        Where-Object { $_.Name -match "SAMSUNG|Galaxy" }
+        Where-Object { $_.Name -match "SAMSUNG|Galaxy|16297BCCB59BC|4438638898209" }
         
         foreach ($folder in $samsungPackageFolders) {
             try {
@@ -3069,6 +3084,18 @@ function Clear-AllSamsungData {
         }
         catch {
             Write-Status "Could not delete SamsungBackup folder" -Status WARN
+        }
+    }
+    
+    # Clear Samsung Settings registry modules
+    $samsungRegKey = "HKLM:\SOFTWARE\Samsung"
+    if (Test-Path $samsungRegKey) {
+        try {
+            Remove-Item $samsungRegKey -Recurse -Force -ErrorAction SilentlyContinue
+            Write-Status "Deleted: HKLM\SOFTWARE\Samsung" -Status OK
+        }
+        catch {
+            Write-Status "Could not delete HKLM\SOFTWARE\Samsung: $($_.Exception.Message)" -Status WARN
         }
     }
 }
@@ -4062,7 +4089,8 @@ function Start-SamsungSettingsAndVerify {
     Write-Host "`nLaunching Samsung Settings..." -ForegroundColor Cyan
 
     if ($TestMode -or $AutoInstall) {
-        Write-Host "  [$($TestMode ? 'TEST' : 'AUTO')] Skipping interactive app launch after $Context" -ForegroundColor Gray
+        $skipModeLabel = if ($TestMode) { "TEST" } else { "AUTO" }
+        Write-Host "  [$skipModeLabel] Skipping interactive app launch after $Context" -ForegroundColor Gray
         return $true
     }
 
@@ -5090,6 +5118,36 @@ function Install-SystemSupportEngine {
                 Write-Host "    Configuring service failure recovery..." -ForegroundColor Gray
                 & sc.exe failure $newServiceName reset= 86400 actions= restart/5000/restart/5000/restart/5000 2>&1 | Out-Null
                 Write-Host "    ✓ Service will auto-restart on failure (5s delays)" -ForegroundColor Green
+
+                # Configure service parameters (Interface: 6 and Version)
+                Write-Host "    Configuring service parameters..." -ForegroundColor Gray
+                $serviceRegPaths = @(
+                    "HKLM:\SYSTEM\CurrentControlSet\Services\$newServiceName",
+                    "HKLM:\SYSTEM\CurrentControlSet\Services\SamsungSystemSupportService"
+                )
+                foreach ($sRegPath in $serviceRegPaths) {
+                    try {
+                        if (-not (Test-Path $sRegPath)) {
+                            New-Item -Path $sRegPath -Force -ErrorAction SilentlyContinue | Out-Null
+                        }
+                        Set-ItemProperty -Path $sRegPath -Name "Interface" -Value "6" -Type String -Force -ErrorAction SilentlyContinue
+                        Set-ItemProperty -Path $sRegPath -Name "Version" -Value $driverVersion -Type String -Force -ErrorAction SilentlyContinue
+
+                        $paramPath = Join-Path $sRegPath "Parameters"
+                        if (-not (Test-Path $paramPath)) {
+                            New-Item -Path $paramPath -Force -ErrorAction SilentlyContinue | Out-Null
+                        }
+                        Set-ItemProperty -Path $paramPath -Name "Interface" -Value "6" -Type String -Force -ErrorAction SilentlyContinue
+                        Set-ItemProperty -Path $paramPath -Name "Version" -Value $driverVersion -Type String -Force -ErrorAction SilentlyContinue
+                    }
+                    catch {
+                        # Silently continue on locked keys
+                    }
+                }
+                Write-Host "    ✓ Service parameters configured (Interface: 6, Version: $driverVersion)" -ForegroundColor Green
+
+                # Initialize Samsung Settings registry modules
+                Initialize-SamsungSettingsRegistry -EngineVersion $driverVersion -TestMode $TestMode
             
                 Write-Host "      Name: $newServiceName" -ForegroundColor Gray
                 Write-Host "      Display: $displayName" -ForegroundColor Gray
@@ -5544,10 +5602,21 @@ function Stop-SamsungProcesses {
         "SamsungNotes",
         "SamsungGallery",
         "QuickShare",
+        "QuickShareCore",
+        "SamsungQuickShare",
         "MultiControl",
+        "SamsungMultiControl",
+        "SamsungContinuityService",
+        "StorageShare",
+        "CameraSharing",
+        "CameraShare",
+        "phone",
+        "SamsungPhone",
         "AISelect",
         "SamsungFlow",
-        "SamsungScreenRecorder"
+        "SamsungScreenRecorder",
+        "SamsungPass",
+        "SamsungDeviceCare"
     )
     
     $killedCount = 0
@@ -5560,11 +5629,20 @@ function Stop-SamsungProcesses {
                     $killedCount++
                 }
                 catch {
-                    # Process may have already exited or access denied - this is expected and safe to ignore
-                    Write-Verbose "Could not stop process $($proc.Name) (PID: $($proc.Id)): $($_.Exception.Message)"
+                    # If Stop-Process fails (e.g. SYSTEM process), fallback to taskkill with debug privilege
+                    try {
+                        & taskkill.exe /F /T /PID $proc.Id 2>&1 | Out-Null
+                        if ($LASTEXITCODE -eq 0) { $killedCount++ }
+                    }
+                    catch {}
                 }
             }
         }
+        # Also ensure any lingering instances by image name are terminated
+        try {
+            & taskkill.exe /F /T /IM "$procName.exe" 2>&1 | Out-Null
+        }
+        catch {}
     }
     
     if ($killedCount -gt 0) {
@@ -5687,6 +5765,9 @@ function Uninstall-SamsungApps {
     
     Write-Status "`n=== UNINSTALLING SAMSUNG APPS ===" -Status ACTION
     
+    # Ensure all Samsung processes are stopped before removing packages
+    Stop-SamsungProcesses -TestMode $TestMode | Out-Null
+    
     if ($TestMode) {
         Write-Status "[TEST MODE] Would uninstall all Samsung apps" -Status INFO
         if ($DeleteData) {
@@ -5741,7 +5822,7 @@ function Uninstall-SamsungApps {
         }
         
         $packageFolders = Get-ChildItem "$env:LOCALAPPDATA\Packages" -Directory | 
-        Where-Object { $_.Name -match "Samsung|Galaxy" }
+        Where-Object { $_.Name -match "Samsung|Galaxy|16297BCCB59BC|4438638898209" }
         
         foreach ($folder in $packageFolders) {
             try {
@@ -6661,6 +6742,9 @@ function Install-SamsungPackages {
                     "GalaxyBookSmartSwitch" = "SmartSwitchforGalaxyBook"
                     "LiveWallpaper" = "Sidia.LiveWallpaper"
                     "SamsungDeviceCare" = "SamsungPCCleaner"
+                    "SamsungSettings" = "SamsungSettings1.5"
+                    "SamsungSettingsRuntime" = "SamsungSettingsRuntime"
+                    "SamsungCloud" = "SamsungCloudPlatformManag"
                 }
                 
                 $dbName = $pkg.Name.Replace(" ", "")
@@ -7104,6 +7188,14 @@ function New-RegistrySpoofBatch {
         return "reg add `"HKLM\SYSTEM\CurrentControlSet\Control\SystemInformation`" /v $Key /t REG_SZ /d `"$Value`" /f"
     }
     
+    $serialNumber = if ($values.ContainsKey('SerialNumber') -and $values.SerialNumber) {
+        $values.SerialNumber
+    } elseif ($values.ContainsKey('SystemSerialNumber') -and $values.SystemSerialNumber) {
+        $values.SystemSerialNumber
+    } else {
+        "07D2010L51D044039"
+    }
+
     $batchContent = @"
 @echo off
 REM ============================================================================
@@ -7125,6 +7217,9 @@ $(Format-BiosRegValue "SystemFamily" $values.SystemFamily)
 $(Format-BiosRegValue "SystemProductName" $values.SystemProductName)
 $(Format-BiosRegValue "SystemSKU" $systemSku)
 $(Format-BiosRegValue "SystemVersion" $systemVersion)
+$(Format-BiosRegValue "SystemSerialNumber" $serialNumber)
+$(Format-BiosRegValue "BaseBoardSerialNumber" $serialNumber)
+$(Format-BiosRegValue "BIOSSerialNumber" $serialNumber)
 $(Format-BiosRegValue "EnclosureType" $values.EnclosureKind)
 $(Format-BiosRegValue "BaseBoardManufacturer" $values.BaseBoardManufacturer)
 $(Format-BiosRegValue "BaseBoardProduct" $values.BaseBoardProduct)
@@ -7140,6 +7235,8 @@ $(Format-HwConfigRegValue "SystemFamily" $values.SystemFamily)
 $(Format-HwConfigRegValue "SystemProductName" $values.SystemProductName)
 $(Format-HwConfigRegValue "SystemSKU" $systemSku)
 $(Format-HwConfigRegValue "SystemVersion" $systemVersion)
+$(Format-HwConfigRegValue "SystemSerialNumber" $serialNumber)
+$(Format-HwConfigRegValue "BaseBoardSerialNumber" $serialNumber)
 $(Format-HwConfigRegValue "BIOSVendor" $values.BIOSVendor)
 $(Format-HwConfigRegValue "BIOSVersion" $values.BIOSVersion)
 $(Format-HwConfigRegValue "BIOSReleaseDate" $biosReleaseDate)
@@ -7153,6 +7250,60 @@ $(Format-SysInfoRegValue "BIOSVersion" $values.BIOSVersion)
 $(Format-SysInfoRegValue "BIOSReleaseDate" $biosReleaseDate)
 $(Format-SysInfoRegValue "SystemManufacturer" $values.SystemManufacturer)
 $(Format-SysInfoRegValue "SystemProductName" $values.SystemProductName)
+$(Format-SysInfoRegValue "SystemSerialNumber" $serialNumber)
+$(Format-SysInfoRegValue "BaseBoardSerialNumber" $serialNumber)
+
+REM ============================================================================
+REM SECTION 4: HKLM\SOFTWARE\Samsung (Samsung Settings Modules & Baseline)
+REM ============================================================================
+reg add "HKLM\SOFTWARE\Samsung" /v JS /t REG_DWORD /d 2018 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung" /v CHASSISTYPE /t REG_SZ /d "NP" /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung" /v EULA /t REG_SZ /d "2.2.8.0" /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung" /v SerialNumber /t REG_SZ /d "$serialNumber" /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\SamsungSettings" /v SerialNumber /t REG_SZ /d "$serialNumber" /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\ColorEngine\Features" /v Interface /t REG_DWORD /d 6 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\ColorEngine\Features" /v ColorTone /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\ColorEngine\Features" /v HDRPlus /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\ColorEngine\Features" /v BlackEqualizerLevel /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\ColorEngine\Features" /v ColorMode /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\ColorEngine\Features" /v DPST /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\ColorEngine\Features" /v Amoled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\ColorEngine\Features" /v ColorModeList /t REG_SZ /d "0,1,2,3,4" /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\SamsungSettings" /v ModelType /t REG_SZ /d "NotePC" /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\SamsungSettings" /v Manufacturer /t REG_SZ /d "SAMSUNG ELECTRONICS CO., LTD." /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\SamsungSettings" /v BIOSVersion /t REG_SZ /d "$($values.BIOSVersion)" /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\SamsungSettings" /v EngineVersion /t REG_SZ /d "$LATEST_SSSE_VERSION" /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\SamsungSettings" /v AppVersion /t REG_SZ /d "$LATEST_SSSE_VERSION" /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\SamsungSettings" /v OOBEComplete /t REG_DWORD /d 1760039134 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\SamsungSettings" /v MigrationComplete /t REG_DWORD /d 1760039134 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\SamsungSettings\ModuleSystem" /v Version /t REG_SZ /d "$LATEST_SSSE_VERSION" /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\SamsungSettings\ModuleSystem" /v CheckSingleBom /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\SamsungSettings\ModuleSystem" /v SupportComputerInfo /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\SamsungSettings\ModuleProtectBattery" /v Support /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\SamsungSettings\ModuleProtectBattery" /v OnOff /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\SamsungSettings\ModuleProtectBattery" /v Value /t REG_DWORD /d 80 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\SamsungSettings\ModuleEasyConnect" /v OnOff /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\SamsungSettings\ModuleEasyConnect" /v SyncStatus /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\SamsungSettings\ModuleAutoBoot" /v Support /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\SamsungSettings\ModuleAutoBoot" /v OnOff /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\SamsungSettings\ModuleAutoBoot" /v SupportOnAcPower /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\SamsungSettings\ModuleBlockCamMic" /v Support /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\SamsungSettings\ModuleBlockCamMic" /v OnOff /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\SamsungSettings\ModulePerformance" /v Support /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\SamsungSettings\ModuleColorEngine" /v Interface /t REG_DWORD /d 6 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\SamsungSettings\ModuleWiFiSync" /v OnOff /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\SamsungSettings\ModuleContinueApps" /v OnOff /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\StorageShare" /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\StorageShare\DriveMap" /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\StorageShare\VirtualDriveMap" /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\StudioMode\Settings" /v FBmode /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\StudioMode\Settings" /v SupportedSABI /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\StudioMode\Settings" /v UserMode /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\StudioMode\Settings" /v DriverVersion /t REG_DWORD /d 4953 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\StudioMode\Settings" /v init_mft0_fb /t REG_DWORD /d 7 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\StudioMode\Settings" /v PostProcessingPath /t REG_SZ /d "System\CurrentControlSet\Control\DeviceClasses\{e5323777-f976-4f5b-9b55-b94699c46e44}\##?#ROOT#CAMERASHAREDRIVERSOURCE#0000#{e5323777-f976-4f5b-9b55-b94699c46e44}\#global\Device Parameters" /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\StudioMode\Settings" /v PostProcessingPath2 /t REG_SZ /d "System\CurrentControlSet\Control\DeviceClasses\{65e8773d-8f56-11d0-a3b9-00a0c9223196}\##?#ROOT#CAMERASHAREDRIVERSOURCE#0000#{65e8773d-8f56-11d0-a3b9-00a0c9223196}\#global\Device Parameters" /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Samsung\StudioMode\Settings" /v EnableDshowRedirectionPath /t REG_SZ /d "System\CurrentControlSet\Enum\ROOT\CAMERASHAREDRIVERSOURCE\0000\Device Parameters" /f >nul 2>&1
 
 REM ============================================================================
 REM Registry spoof complete!
@@ -7164,6 +7315,500 @@ REM ============================================================================
     }
     else {
         $batchContent | Set-Content $OutputPath -Encoding ASCII
+    }
+}
+
+function Initialize-SamsungSettingsRegistry {
+    <#
+    .SYNOPSIS
+        Initializes the authentic HKLM\SOFTWARE\Samsung registry branch and Samsung Settings
+        module definitions to enable all device control tabs, battery protection, performance
+        modes, auto boot, and Buds pop-up sync.
+    #>
+    param(
+        [string]$BiosVersion = "P11CFP.025.251116.HQ",
+        [string]$EngineVersion = $LATEST_SSSE_VERSION,
+        [bool]$TestMode = $false
+    )
+
+    if ($TestMode) {
+        Write-Host "  [TEST] Would initialize Samsung Settings modules in HKLM\SOFTWARE\Samsung" -ForegroundColor Gray
+        return
+    }
+
+    try {
+        # Base Samsung Key
+        $samsungKey = "HKLM:\SOFTWARE\Samsung"
+        if (-not (Test-Path $samsungKey)) {
+            New-Item -Path $samsungKey -Force | Out-Null
+        }
+        Set-ItemProperty -Path $samsungKey -Name "JS" -Value 0x7E2 -Type DWord -Force
+        Set-ItemProperty -Path $samsungKey -Name "CHASSISTYPE" -Value "NP" -Type String -Force
+        Set-ItemProperty -Path $samsungKey -Name "EULA" -Value "2.2.8.0" -Type String -Force
+
+        # ColorEngine Features Key
+        $colorFeaturesKey = "$samsungKey\ColorEngine\Features"
+        if (-not (Test-Path $colorFeaturesKey)) {
+            New-Item -Path $colorFeaturesKey -Force | Out-Null
+        }
+        Set-ItemProperty -Path $colorFeaturesKey -Name "Interface" -Value 6 -Type DWord -Force
+        Set-ItemProperty -Path $colorFeaturesKey -Name "ColorTone" -Value 1 -Type DWord -Force
+        Set-ItemProperty -Path $colorFeaturesKey -Name "HDRPlus" -Value 1 -Type DWord -Force
+        Set-ItemProperty -Path $colorFeaturesKey -Name "BlackEqualizerLevel" -Value 0 -Type DWord -Force
+        Set-ItemProperty -Path $colorFeaturesKey -Name "ColorMode" -Value 1 -Type DWord -Force
+        Set-ItemProperty -Path $colorFeaturesKey -Name "DPST" -Value 1 -Type DWord -Force
+        Set-ItemProperty -Path $colorFeaturesKey -Name "Amoled" -Value 0 -Type DWord -Force
+        Set-ItemProperty -Path $colorFeaturesKey -Name "ColorModeList" -Value "0,1,2,3,4" -Type String -Force
+
+        # SamsungSettings Root Key
+        $settingsKey = "$samsungKey\SamsungSettings"
+        if (-not (Test-Path $settingsKey)) {
+            New-Item -Path $settingsKey -Force | Out-Null
+        }
+        Set-ItemProperty -Path $settingsKey -Name "ModelType" -Value "NotePC" -Type String -Force
+        Set-ItemProperty -Path $settingsKey -Name "Manufacturer" -Value "SAMSUNG ELECTRONICS CO., LTD." -Type String -Force
+        Set-ItemProperty -Path $settingsKey -Name "BIOSVersion" -Value $BiosVersion -Type String -Force
+        Set-ItemProperty -Path $settingsKey -Name "EngineVersion" -Value $EngineVersion -Type String -Force
+        Set-ItemProperty -Path $settingsKey -Name "AppVersion" -Value $EngineVersion -Type String -Force
+        Set-ItemProperty -Path $settingsKey -Name "OOBEComplete" -Value 0x68e810de -Type DWord -Force
+        Set-ItemProperty -Path $settingsKey -Name "MigrationComplete" -Value 0x68e810de -Type DWord -Force
+
+        # Modules definitions
+        $modules = @{
+            "ModuleAutoBoot" = @{
+                "OnOff" = @{ Val = 1; Type = "DWord" }
+                "Support" = @{ Val = 1; Type = "DWord" }
+                "SupportOnAcPower" = @{ Val = 1; Type = "DWord" }
+            }
+            "ModuleBlockCamMic" = @{
+                "OnOff" = @{ Val = 1; Type = "DWord" }
+                "Support" = @{ Val = 1; Type = "DWord" }
+            }
+            "ModuleColorEngine" = @{
+                "Interface" = @{ Val = 6; Type = "DWord" }
+                "VisionBoosterOnOff" = @{ Val = 1; Type = "DWord" }
+                "ColorMode" = @{ Val = 1; Type = "DWord" }
+                "HdrPlus" = @{ Val = 1; Type = "DWord" }
+                "DPST" = @{ Val = 1; Type = "DWord" }
+                "Colortone" = @{ Val = 1; Type = "DWord" }
+                "ColorModeValue" = @{ Val = 0; Type = "DWord" }
+                "DPSTOnOff" = @{ Val = 1; Type = "DWord" }
+                "ColortoneValue" = @{ Val = 2; Type = "DWord" }
+                "HdrPlusOnOff" = @{ Val = 0; Type = "DWord" }
+                "BlackEqualizerLevelValue" = @{ Val = 5; Type = "DWord" }
+                "ColorEngineInstalled" = @{ Val = 1; Type = "DWord" }
+                "ColorModeList" = @{ Val = '[  "0",  "1",  "2",  "3",  "4" ]'; Type = "String" }
+            }
+            "ModuleConsultingMode" = @{
+                "OnOff" = @{ Val = 0; Type = "DWord" }
+            }
+            "ModuleContinueApps" = @{
+                "OnOff" = @{ Val = 1; Type = "DWord" }
+            }
+            "ModuleDolbyAtmos" = @{
+                "OnOff" = @{ Val = 0; Type = "DWord" }
+            }
+            "ModuleEasyConnect" = @{
+                "OnOff" = @{ Val = 1; Type = "DWord" }
+                "SyncStatus" = @{ Val = 1; Type = "DWord" }
+                "FirstPopup" = @{ Val = 0; Type = "DWord" }
+            }
+            "ModuleHideWindow" = @{
+                "Support" = @{ Val = 1; Type = "DWord" }
+            }
+            "ModuleKeyboardBacklightLevel" = @{
+                "Support" = @{ Val = 1; Type = "DWord" }
+                "Value" = @{ Val = 2; Type = "DWord" }
+                "IdleOnOff" = @{ Val = 1; Type = "DWord" }
+                "IdleTime" = @{ Val = 0; Type = "DWord" }
+                "SupportALS" = @{ Val = 0; Type = "DWord" }
+            }
+            "ModulePerformance" = @{
+                "Support" = @{ Val = 1; Type = "DWord" }
+                "Value" = @{ Val = 0; Type = "DWord" }
+                "ModeList" = @{ Val = '[  "2",  "1",  "0",  "3" ]'; Type = "String" }
+                "TabletMode" = @{ Val = 0; Type = "DWord" }
+                "WindowsPowerOption" = @{ Val = "BestEfficiency"; Type = "String" }
+            }
+            "ModuleProtectBattery" = @{
+                "Support" = @{ Val = 1; Type = "DWord" }
+                "OnOff" = @{ Val = 1; Type = "DWord" }
+                "Value" = @{ Val = 80; Type = "DWord" }
+                "CurrentState" = @{ Val = 0; Type = "DWord" }
+            }
+            "ModuleQuickSettings" = @{
+                "OnOff" = @{ Val = 1; Type = "DWord" }
+            }
+            "ModuleScreenMode" = @{
+                "Support" = @{ Val = 1; Type = "DWord" }
+                "Value" = @{ Val = 0; Type = "DWord" }
+                "ColortoneValue" = @{ Val = 2; Type = "DWord" }
+                "DPSTOnOff" = @{ Val = 1; Type = "DWord" }
+                "BlackEqualizerLevelValue" = @{ Val = 5; Type = "DWord" }
+                "HdrPlusOnOff" = @{ Val = 0; Type = "DWord" }
+                "DPST" = @{ Val = 1; Type = "DWord" }
+                "ColorModeList" = @{ Val = '[  "0",  "1",  "2",  "3",  "4" ]'; Type = "String" }
+            }
+            "ModuleSystem" = @{
+                "Version" = @{ Val = $EngineVersion; Type = "String" }
+                "CheckSingleBom" = @{ Val = 1; Type = "DWord" }
+                "SupportComputerInfo" = @{ Val = 1; Type = "DWord" }
+            }
+            "ModuleUSBCharging" = @{
+                "Support" = @{ Val = 0; Type = "DWord" }
+            }
+            "ModuleWiFiSync" = @{
+                "OnOff" = @{ Val = 1; Type = "DWord" }
+            }
+        }
+
+        foreach ($modName in $modules.Keys) {
+            $modPath = "$settingsKey\$modName"
+            if (-not (Test-Path $modPath)) {
+                New-Item -Path $modPath -Force | Out-Null
+            }
+            $props = $modules[$modName]
+            foreach ($propName in $props.Keys) {
+                $prop = $props[$propName]
+                Set-ItemProperty -Path $modPath -Name $propName -Value $prop.Val -Type $prop.Type -Force
+            }
+        }
+
+        # StorageShare Key
+        $storageShareKey = "$samsungKey\StorageShare"
+        if (-not (Test-Path $storageShareKey)) {
+            New-Item -Path $storageShareKey -Force | Out-Null
+        }
+        foreach ($sub in @("DriveMap", "VirtualDriveMap")) {
+            $subPath = "$storageShareKey\$sub"
+            if (-not (Test-Path $subPath)) {
+                New-Item -Path $subPath -Force | Out-Null
+            }
+        }
+
+        # StudioMode Settings Key (Camera Share virtual camera redirection)
+        $studioModeSettingsKey = "$samsungKey\StudioMode\Settings"
+        if (-not (Test-Path $studioModeSettingsKey)) {
+            New-Item -Path $studioModeSettingsKey -Force | Out-Null
+        }
+        Set-ItemProperty -Path $studioModeSettingsKey -Name "FBmode" -Value 0 -Type DWord -Force
+        Set-ItemProperty -Path $studioModeSettingsKey -Name "SupportedSABI" -Value 0 -Type DWord -Force
+        Set-ItemProperty -Path $studioModeSettingsKey -Name "UserMode" -Value 1 -Type DWord -Force
+        Set-ItemProperty -Path $studioModeSettingsKey -Name "DriverVersion" -Value 0x1359 -Type DWord -Force
+        Set-ItemProperty -Path $studioModeSettingsKey -Name "init_mft0_fb" -Value 7 -Type DWord -Force
+        Set-ItemProperty -Path $studioModeSettingsKey -Name "PostProcessingPath" -Value "System\CurrentControlSet\Control\DeviceClasses\{e5323777-f976-4f5b-9b55-b94699c46e44}\##?#ROOT#CAMERASHAREDRIVERSOURCE#0000#{e5323777-f976-4f5b-9b55-b94699c46e44}\#global\Device Parameters" -Type String -Force
+        Set-ItemProperty -Path $studioModeSettingsKey -Name "PostProcessingPath2" -Value "System\CurrentControlSet\Control\DeviceClasses\{65e8773d-8f56-11d0-a3b9-00a0c9223196}\##?#ROOT#CAMERASHAREDRIVERSOURCE#0000#{65e8773d-8f56-11d0-a3b9-00a0c9223196}\#global\Device Parameters" -Type String -Force
+        Set-ItemProperty -Path $studioModeSettingsKey -Name "EnableDshowRedirectionPath" -Value "System\CurrentControlSet\Enum\ROOT\CAMERASHAREDRIVERSOURCE\0000\Device Parameters" -Type String -Force
+
+        Write-Host "  ✓ Samsung Settings registry modules initialized ($EngineVersion)" -ForegroundColor Green
+    }
+    catch {
+        Write-Host "  ⚠ Warning: Failed to initialize some Samsung Settings registry modules: $_" -ForegroundColor Yellow
+    }
+}
+
+function Update-SamsungSettingsLocalState {
+    <#
+    .SYNOPSIS
+        Patches Samsung Settings and ecosystem UWP ApplicationData LocalSettings to inject the spoofed SMBIOS identity.
+    .DESCRIPTION
+        Samsung UWP apps (Samsung Settings, Quick Share, Multi Control, Samsung Account, Storage Share, Samsung My Devices)
+        query WMI (Win32_ComputerSystem) on first launch and cache hardware identity strings in their LocalSettings.
+        Because WMI queries motherboard firmware directly rather than HKLM\HARDWARE\DESCRIPTION\System\BIOS,
+        non-Samsung motherboards return generic OEM values (e.g. "Default string"), causing:
+          - Quick Share to display as "[User]'s Default string ([PC-Name])" instead of Galaxy Book
+          - CameraSharingVM.Support() to fail in Samsung Settings (requires GBVersion >= 4 or Arrow Lake)
+          - StorageSharingVM.Support() to fail in Samsung Settings (requires GBVersion >= 3 or Arrow Lake)
+          - Multi Control, Samsung Account, and Storage Share to register as "Default string"
+        This function injects the authentic Galaxy Book identity directly into all installed Samsung UWP
+        LocalSettings stores via ApplicationDataManager, resolving device naming and capability checks.
+    #>
+    param(
+        [string]$SystemFamily = "Galaxy Book4",
+        [string]$SystemProductName = "NP750XGJ-LG9IN",
+        [string]$BaseBoardProduct,
+        [string]$SystemManufacturer = "SAMSUNG ELECTRONICS CO., LTD.",
+        [string]$SystemSKU = "SCAI-A5A5-A5A5-RPLU-PCFP",
+        [string]$SerialNumber = "07D2010L51D044039",
+        [bool]$TestMode = $false
+    )
+
+    if ($TestMode) {
+        Write-Host "  [TEST] Would patch Samsung UWP LocalSettings ($SystemFamily)" -ForegroundColor Gray
+        return
+    }
+
+    try {
+        Write-Host "  Patching Samsung ecosystem app data ($SystemFamily)..." -ForegroundColor Gray
+
+        # Define targets: PackageNamePattern -> @{ SettingKey = Value }
+        $appPatches = @(
+            @{
+                Name = "Samsung Settings"
+                Pattern = "SAMSUNGELECTRONICSCO.LTD.SamsungSettings1.5*"
+                Values = @{
+                    "SystemFamily"     = $SystemFamily
+                    "Product"          = $SystemProductName
+                    "ManufacturerName" = $SystemManufacturer
+                    "SystemSKU"        = $SystemSKU
+                }
+            },
+            @{
+                Name = "Quick Share"
+                Pattern = "SAMSUNGELECTRONICSCoLtd.SamsungQuickShare*"
+                Values = @{
+                    "ComputerName"     = $SystemFamily
+                }
+            },
+            @{
+                Name = "Multi Control"
+                Pattern = "SAMSUNGELECTRONICSCoLtd.MultiControl*"
+                Values = @{
+                    "SystemFamily"     = $SystemFamily
+                }
+            },
+            @{
+                Name = "Samsung Account"
+                Pattern = "SAMSUNGELECTRONICSCO.LTD.SamsungAccount*"
+                Values = @{
+                    "familyName"       = $SystemFamily
+                }
+            },
+            @{
+                Name = "Storage Share"
+                Pattern = "SAMSUNGELECTRONICSCoLtd.4438638898209*"
+                Values = @{
+                    "DeviceOEMName"    = $SystemFamily
+                }
+            },
+            @{
+                Name = "Samsung My Devices"
+                Pattern = "SAMSUNGELECTRONICSCoLtd.SamsungMyDevices*"
+                Values = @{
+                    "DeviceOEMName"    = $SystemFamily
+                }
+            }
+        )
+
+        # Helper script block for setting UWP LocalSettings via Windows PowerShell COM WinRT
+        $scriptBlock = {
+            param($pkgFamily, $dictJson)
+            try {
+                Add-Type -AssemblyName System.Runtime.WindowsRuntime -ErrorAction SilentlyContinue
+                [Windows.Management.Core.ApplicationDataManager,Windows.Management.Core,ContentType=WindowsRuntime] | Out-Null
+                $adm = [Windows.Management.Core.ApplicationDataManager]::CreateForPackageFamily($pkgFamily)
+                if (-not $adm -or -not $adm.LocalSettings) { return $false }
+                $dictType = [System.Collections.Generic.IDictionary[string, object]]
+                $setItem = $dictType.GetMethod('set_Item')
+                $kvPairs = ConvertFrom-Json $dictJson
+                foreach ($prop in $kvPairs.PSObject.Properties) {
+                    $setItem.Invoke($adm.LocalSettings.Values, @($prop.Name, [object]$prop.Value))
+                }
+                return $true
+            } catch {
+                return $false
+            }
+        }
+        $encodedSb = [Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($scriptBlock.ToString()))
+
+        foreach ($app in $appPatches) {
+            $pkg = Get-AppxPackage -AllUsers -Name $app.Pattern -ErrorAction SilentlyContinue | Select-Object -First 1
+            if (-not $pkg) { continue }
+            $pfn = $pkg.PackageFamilyName
+            $json = $app.Values | ConvertTo-Json -Compress
+
+            $ok = $false
+            if ($PSVersionTable.PSVersion.Major -ge 6) {
+                $res = & powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& ([scriptblock]::Create([System.Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('$encodedSb')))) '$pfn' '$json'"
+                $ok = ($res -match "True")
+            } else {
+                try {
+                    Add-Type -AssemblyName System.Runtime.WindowsRuntime -ErrorAction SilentlyContinue
+                    [Windows.Management.Core.ApplicationDataManager,Windows.Management.Core,ContentType=WindowsRuntime] | Out-Null
+                    $adm = [Windows.Management.Core.ApplicationDataManager]::CreateForPackageFamily($pfn)
+                    if ($adm -and $adm.LocalSettings) {
+                        $dictType = [System.Collections.Generic.IDictionary[string, object]]
+                        $setItem = $dictType.GetMethod('set_Item')
+                        foreach ($k in $app.Values.Keys) {
+                            $setItem.Invoke($adm.LocalSettings.Values, @($k, [object]$app.Values[$k]))
+                        }
+                        $ok = $true
+                    }
+                } catch {
+                    $ok = $false
+                }
+            }
+
+            if ($ok) {
+                Write-Host "  ✓ $($app.Name) app identity patched ($SystemFamily)" -ForegroundColor Green
+            }
+        }
+
+        # If Quick Share is running, restart it so the updated ComputerName displays immediately
+        $qsProcs = Get-Process -Name "QuickShare", "QuickShareCore" -ErrorAction SilentlyContinue
+        if ($qsProcs) {
+            Stop-Process -Name "QuickShare", "QuickShareCore" -Force -ErrorAction SilentlyContinue
+            Restart-Service -Name "SamsungQuickShareService" -Force -ErrorAction SilentlyContinue
+            Write-Host "  ✓ Quick Share service refreshed (device name updated)" -ForegroundColor Green
+        }
+
+        # Samsung Phone (Electron app) hardware cache patching
+        $phonePkg = Get-AppxPackage -AllUsers -Name "SAMSUNGELECTRONICSCO.LTD.SamsungPhone*" -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($phonePkg) {
+            $phoneLocalState = Join-Path $env:LOCALAPPDATA "Packages\$($phonePkg.PackageFamilyName)\LocalState"
+            if (Test-Path $phoneLocalState) {
+                try {
+                    # Determine full 14-character model string with country code (e.g. NP960XHA-KG2IN)
+                    $fullPhoneModel = if ($BaseBoardProduct -and $BaseBoardProduct -match '^NP') {
+                        $BaseBoardProduct
+                    } elseif ($SystemProductName -match '^NP') {
+                        $SystemProductName
+                    } else {
+                        "NP$($SystemProductName)-KG1US"
+                    }
+                    $sysModelShort = ($fullPhoneModel -replace '^NP', '') -replace '-.*$', ''
+
+                    # 1. Runtime .env config
+                    $phoneEnvPath = Join-Path $phoneLocalState ".env"
+                    $phoneEnvLines = @(
+                        'DEFAULT_ACS="https://acs.samsungmdec.com"',
+                        'DEFAULT_ACS_CN="https://acs-central-cn1.mdc-prd.cn"',
+                        'GLOBAL_ES="https://es-central-ec1.samsungmdec.com"',
+                        'CHN_ES="https://es-central-cn1.mdc-prd.cn"',
+                        "MODEL=`"$fullPhoneModel`"",
+                        'BYPASS_MODEL_RESTRICTION="true"',
+                        'REJOIN_RESTRICTION="600"',
+                        'PN_UPDATE_CHECK="604800"'
+                    )
+                    $phoneEnvLines | Set-Content -Path $phoneEnvPath -Encoding UTF8 -Force
+
+                    # 2. LevelDB Local Storage
+                    $phoneLevelDb = Join-Path $phoneLocalState "sessionData\Local Storage\leveldb"
+                    if (Test-Path $phoneLevelDb) {
+                        $phoneLogFile = Get-ChildItem -Path $phoneLevelDb -Filter "*.log" | Sort-Object Length -Descending | Select-Object -First 1
+                        if ($phoneLogFile) {
+                            try {
+                                & taskkill.exe /F /IM "phone.exe" /IM "SamsungPhone.exe" 2>&1 | Out-Null
+                            } catch { }
+                            Get-Process -Name "phone", "SamsungPhone" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+                            Start-Sleep -Milliseconds 600
+
+                            $crcDef = @'
+using System;
+public class LevelDbCrc {
+    public static uint Crc32c(byte[] data) {
+        uint crc = 0xFFFFFFFF;
+        for (int i = 0; i < data.Length; i++) {
+            crc ^= data[i];
+            for (int j = 0; j < 8; j++) {
+                crc = (crc >> 1) ^ (((crc & 1) != 0) ? 0x82F63B78 : 0);
+            }
+        }
+        return crc ^ 0xFFFFFFFF;
+    }
+    public static uint Mask(uint c) {
+        return (((c >> 15) | (c << 17)) + 0xa282ead8);
+    }
+}
+'@
+                            if (-not ([System.Management.Automation.PSTypeName]'LevelDbCrc').Type) {
+                                Add-Type -TypeDefinition $crcDef -ErrorAction SilentlyContinue
+                            }
+
+                            $data = [System.IO.File]::ReadAllBytes($phoneLogFile.FullName)
+                            $offset = 0
+                            $maxSeq = [uint64]1
+                            while ($offset + 7 -le $data.Length) {
+                                $length = [System.BitConverter]::ToUInt16($data, $offset + 4)
+                                if ($length -eq 0 -or ($offset + 7 + $length -gt $data.Length)) { break }
+                                $payload = New-Object byte[] $length
+                                [System.Array]::Copy($data, $offset + 7, $payload, 0, $length)
+                                if ($length -ge 12) {
+                                    $seq = [System.BitConverter]::ToUInt64($payload, 0)
+                                    $cnt = [System.BitConverter]::ToUInt32($payload, 8)
+                                    if ($seq + $cnt -gt $maxSeq) { $maxSeq = $seq + $cnt }
+                                }
+                                $offset += 7 + $length
+                            }
+
+                            $nowIso = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.000Z")
+                            $c0 = [char]0
+                            $c1 = [char]1
+                            $entries = @(
+                                @{ Key = "_file://${c0}${c1}hwCache:model"; Val = "${c1}$fullPhoneModel" },
+                                @{ Key = "_file://${c0}${c1}hwCache:systemModel"; Val = "${c1}$sysModelShort" },
+                                @{ Key = "_file://${c0}${c1}hwCache:modelType"; Val = "${c1}GalaxyBook" },
+                                @{ Key = "_file://${c0}${c1}hwCache:serialNumber"; Val = "${c1}$SerialNumber" },
+                                @{ Key = "_file://${c0}${c1}hwCache:lastQueryTime"; Val = "${c1}$nowIso" },
+                                @{ Key = "_file://${c0}${c1}hwCache:supportedModel"; Val = "${c1}GalaxyBook" }
+                            )
+
+                            $ms = New-Object System.IO.MemoryStream
+                            $bw = New-Object System.IO.BinaryWriter($ms)
+                            $bw.Write([uint64]$maxSeq)
+                            $bw.Write([uint32]$entries.Count)
+                            foreach ($e in $entries) {
+                                $bw.Write([byte]1)
+                                $kb = [System.Text.Encoding]::UTF8.GetBytes($e.Key)
+                                $bw.Write([byte]$kb.Length)
+                                $bw.Write($kb)
+                                $vb = [System.Text.Encoding]::UTF8.GetBytes($e.Val)
+                                $bw.Write([byte]$vb.Length)
+                                $bw.Write($vb)
+                            }
+                            $batchPayload = $ms.ToArray()
+                            $bw.Close()
+                            $ms.Close()
+
+                            $headerAndPayload = New-Object byte[] ($batchPayload.Length + 1)
+                            $headerAndPayload[0] = [byte]1
+                            [System.Array]::Copy($batchPayload, 0, $headerAndPayload, 1, $batchPayload.Length)
+
+                            $rawCrc = [LevelDbCrc]::Crc32c($headerAndPayload)
+                            $maskedCrc = [LevelDbCrc]::Mask($rawCrc)
+
+                            $recMs = New-Object System.IO.MemoryStream
+                            $recBw = New-Object System.IO.BinaryWriter($recMs)
+                            $recBw.Write([uint32]$maskedCrc)
+                            $recBw.Write([uint16]$batchPayload.Length)
+                            $recBw.Write([byte]1)
+                            $recBw.Write($batchPayload)
+                            $recordBytes = $recMs.ToArray()
+                            $recBw.Close()
+                            $recMs.Close()
+
+                            $fs = [System.IO.File]::Open($phoneLogFile.FullName, [System.IO.FileMode]::Append, [System.IO.FileAccess]::Write)
+                            $fs.Write($recordBytes, 0, $recordBytes.Length)
+                            $fs.Close()
+
+                            Write-Host "  ✓ Samsung Phone LocalStorage LevelDB patched ($fullPhoneModel)" -ForegroundColor Green
+                        }
+                    }
+                }
+                catch {
+                    Write-Host "  ⚠ Warning: Failed to patch Samsung Phone LocalStorage: $_" -ForegroundColor Yellow
+                }
+            }
+        }
+
+        # Ensure sharing services are set to Automatic and started
+        foreach ($svcName in @("SamsungStorageShareService", "SamsungCameraShareService")) {
+            $svc = Get-Service -Name $svcName -ErrorAction SilentlyContinue
+            if ($svc) {
+                try {
+                    Set-Service -Name $svcName -StartupType Automatic -ErrorAction SilentlyContinue
+                    if ($svc.Status -ne 'Running') {
+                        Start-Service -Name $svcName -ErrorAction SilentlyContinue
+                    }
+                    Write-Host "  ✓ Service $svcName set to Automatic and running" -ForegroundColor Green
+                } catch {
+                    Write-Host "  ⚠ Service $svcName warning: $_" -ForegroundColor Yellow
+                }
+            }
+        }
+    }
+    catch {
+        Write-Host "  ⚠ Warning: Could not patch Samsung UWP LocalSettings: $_" -ForegroundColor Yellow
     }
 }
 
@@ -7545,12 +8190,14 @@ if ($Uninstall) {
         
         Write-Host "This will remove:" -ForegroundColor Yellow
         Write-Host "  • Scheduled tasks: $($scheduledTaskNames -join ', ')" -ForegroundColor Gray
+        Write-Host "  • Services: SamsungSystemSupportService, GBeSupportService" -ForegroundColor Gray
         Write-Host "  • Installation folder: $installPath" -ForegroundColor Gray
+        Write-Host "  • SSSE folder: C:\GalaxyBook" -ForegroundColor Gray
         Write-Host "  • Registry spoofing will remain until next reboot" -ForegroundColor Gray
         Write-Host ""
     }
     
-    if (-not (Show-Prompt -Question "Are you sure you want to uninstall?" -Description "This will remove the program and scheduled tasks." -RenderHeader $renderHeaderBlock)) {
+    if (-not (Show-Prompt -Question "Are you sure you want to uninstall?" -Description "This will remove the program, services, and scheduled tasks." -RenderHeader $renderHeaderBlock)) {
         Write-Host "`nUninstall cancelled." -ForegroundColor Yellow
         Invoke-InteractivePause
         exit
@@ -7562,6 +8209,9 @@ if ($Uninstall) {
     else {
         Write-Host "`nUninstalling..." -ForegroundColor Yellow
     }
+    
+    # Stop Samsung processes
+    Stop-SamsungProcesses -TestMode $TestMode | Out-Null
     
     # Remove scheduled tasks
     $removedTaskCount = 0
@@ -7588,6 +8238,28 @@ if ($Uninstall) {
         }
     }
     
+    # Remove services
+    $dummyService = Get-Service -Name "SamsungSystemSupportService" -ErrorAction SilentlyContinue
+    if ($dummyService) {
+        if ($TestMode) {
+            Write-Host "  [TEST] Would remove service: SamsungSystemSupportService" -ForegroundColor Gray
+        } else {
+            Stop-Service -Name "SamsungSystemSupportService" -Force -ErrorAction SilentlyContinue
+            & sc.exe delete SamsungSystemSupportService 2>&1 | Out-Null
+            Write-Host "  ✓ Service removed: SamsungSystemSupportService" -ForegroundColor Green
+        }
+    }
+    $gbeService = Get-Service -Name "GBeSupportService" -ErrorAction SilentlyContinue
+    if ($gbeService) {
+        if ($TestMode) {
+            Write-Host "  [TEST] Would remove service: GBeSupportService" -ForegroundColor Gray
+        } else {
+            Stop-Service -Name "GBeSupportService" -Force -ErrorAction SilentlyContinue
+            & sc.exe delete GBeSupportService 2>&1 | Out-Null
+            Write-Host "  ✓ Service removed: GBeSupportService" -ForegroundColor Green
+        }
+    }
+    
     # Remove installation folder
     if (Test-Path $installPath) {
         if ($TestMode) {
@@ -7597,6 +8269,33 @@ if ($Uninstall) {
             Write-Host "  Removing installation folder..." -ForegroundColor Gray
             Remove-Item -Path $installPath -Recurse -Force
             Write-Host "  ✓ Folder removed" -ForegroundColor Green
+        }
+    }
+
+    # Remove SSSE installation folder (C:\GalaxyBook)
+    $ssseInstallPath = "C:\GalaxyBook"
+    if (Test-Path $ssseInstallPath) {
+        if ($TestMode) {
+            Write-Host "  [TEST] Would remove SSSE folder: $ssseInstallPath" -ForegroundColor Gray
+        } else {
+            Write-Host "  Removing SSSE folder..." -ForegroundColor Gray
+            try {
+                & taskkill.exe /F /T /IM "SamsungSystemSupportEngine.exe" 2>&1 | Out-Null
+                & taskkill.exe /F /T /IM "SamsungSystemSupportService.exe" 2>&1 | Out-Null
+            } catch {}
+            Start-Sleep -Milliseconds 500
+            Remove-Item -Path $ssseInstallPath -Recurse -Force -ErrorAction SilentlyContinue
+            if (Test-Path $ssseInstallPath) {
+                try {
+                    Get-ChildItem -Path $ssseInstallPath -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object { $_.Attributes = 'Normal' }
+                    Remove-Item -Path $ssseInstallPath -Recurse -Force -ErrorAction SilentlyContinue
+                } catch {}
+            }
+            if (-not (Test-Path $ssseInstallPath)) {
+                Write-Host "  ✓ SSSE folder removed" -ForegroundColor Green
+            } else {
+                Write-Host "  ⚠ Notice: Could not completely remove $ssseInstallPath (files may be in use)." -ForegroundColor Yellow
+            }
         }
     }
     
@@ -8160,9 +8859,13 @@ if ($alreadyInstalled) {
             
             $deleteData = Show-Prompt -Question "Do you also want to DELETE all Samsung app data? (Nuke Mode)" -Description "Deletes AppData/Local/Packages for Samsung apps" -DefaultChoice "No" -RenderHeader $renderHeaderBlock
             
+            # Stop Samsung processes before uninstalling apps to prevent locked files
+            Write-Host "  Stopping Samsung processes..." -ForegroundColor Gray
+            Stop-SamsungProcesses | Out-Null
+            
             Uninstall-SamsungApps -DeleteData:$deleteData -TestMode $TestMode
             
-            # Remove services
+            # Remove / stop services
             $dummyService = Get-Service -Name "SamsungSystemSupportService" -ErrorAction SilentlyContinue
             if ($dummyService) {
                 Stop-Service -Name "SamsungSystemSupportService" -Force -ErrorAction SilentlyContinue
@@ -8172,6 +8875,12 @@ if ($alreadyInstalled) {
             if ($gbeService) {
                 Stop-Service -Name "GBeSupportService" -Force -ErrorAction SilentlyContinue
                 & sc.exe delete GBeSupportService 2>&1 | Out-Null
+            }
+            foreach ($sSvc in @("SamsungStorageShareService", "SamsungCameraShareService", "SamsungQuickShareService")) {
+                $svc = Get-Service -Name $sSvc -ErrorAction SilentlyContinue
+                if ($svc) {
+                    Stop-Service -Name $sSvc -Force -ErrorAction SilentlyContinue
+                }
             }
             if ($dummyService -or $gbeService) {
                 Write-Host "  ✓ Samsung services removed" -ForegroundColor Green
@@ -8186,9 +8895,6 @@ if ($alreadyInstalled) {
                 }
             }
             
-            Write-Host "  Stopping Samsung processes..." -ForegroundColor Gray
-            Stop-SamsungProcesses | Out-Null
-            
             # Remove user folder
             if (Test-Path $installPath) {
                 Write-Host "  Removing user folder..." -ForegroundColor Gray
@@ -8202,9 +8908,36 @@ if ($alreadyInstalled) {
             $ssseInstallPath = "C:\GalaxyBook"
             if (Test-Path $ssseInstallPath) {
                 Write-Host "  Removing SSSE folder..." -ForegroundColor Gray
+                try {
+                    & taskkill.exe /F /T /IM "SamsungSystemSupportEngine.exe" 2>&1 | Out-Null
+                    & taskkill.exe /F /T /IM "SamsungSystemSupportService.exe" 2>&1 | Out-Null
+                } catch {}
+                Start-Sleep -Milliseconds 500
                 Remove-Item -Path $ssseInstallPath -Recurse -Force -ErrorAction SilentlyContinue
+                if (Test-Path $ssseInstallPath) {
+                    try {
+                        Get-ChildItem -Path $ssseInstallPath -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object { $_.Attributes = 'Normal' }
+                        Remove-Item -Path $ssseInstallPath -Recurse -Force -ErrorAction SilentlyContinue
+                    } catch {}
+                }
                 if (-not (Test-Path $ssseInstallPath)) {
                     Write-Host "  ✓ SSSE folder removed" -ForegroundColor Green
+                } else {
+                    Write-Host "  ⚠ Notice: Could not completely remove $ssseInstallPath (files may be in use)." -ForegroundColor Yellow
+                }
+            }
+            
+            # Clean up HKLM\SOFTWARE\Samsung registry if Nuke mode ($deleteData) was selected
+            if ($deleteData) {
+                $samsungRegKey = "HKLM:\SOFTWARE\Samsung"
+                if (Test-Path $samsungRegKey) {
+                    try {
+                        Remove-Item $samsungRegKey -Recurse -Force -ErrorAction SilentlyContinue
+                        Write-Host "  ✓ Removed registry modules (HKLM\SOFTWARE\Samsung)" -ForegroundColor Green
+                    }
+                    catch {
+                        Write-Host "  ⚠ Could not remove HKLM\SOFTWARE\Samsung: $($_.Exception.Message)" -ForegroundColor Yellow
+                    }
                 }
             }
             
@@ -8243,6 +8976,10 @@ if ($alreadyInstalled) {
                 exit
             }
             
+            # Stop Samsung processes
+            Write-Host "  Stopping Samsung processes..." -ForegroundColor Gray
+            Stop-SamsungProcesses | Out-Null
+            
             # Remove services
             $dummyService = Get-Service -Name "SamsungSystemSupportService" -ErrorAction SilentlyContinue
             if ($dummyService) {
@@ -8253,6 +8990,12 @@ if ($alreadyInstalled) {
             if ($gbeService) {
                 Stop-Service -Name "GBeSupportService" -Force -ErrorAction SilentlyContinue
                 & sc.exe delete GBeSupportService 2>&1 | Out-Null
+            }
+            foreach ($sSvc in @("SamsungStorageShareService", "SamsungCameraShareService", "SamsungQuickShareService")) {
+                $svc = Get-Service -Name $sSvc -ErrorAction SilentlyContinue
+                if ($svc) {
+                    Stop-Service -Name $sSvc -Force -ErrorAction SilentlyContinue
+                }
             }
             if ($dummyService -or $gbeService) {
                 Write-Host "  ✓ Samsung services removed" -ForegroundColor Green
@@ -8267,9 +9010,6 @@ if ($alreadyInstalled) {
                 }
             }
             
-            Write-Host "  Stopping Samsung processes..." -ForegroundColor Gray
-            Stop-SamsungProcesses | Out-Null
-            
             # Remove user folder
             if (Test-Path $installPath) {
                 Write-Host "  Removing user folder..." -ForegroundColor Gray
@@ -8283,9 +9023,22 @@ if ($alreadyInstalled) {
             $ssseInstallPath = "C:\GalaxyBook"
             if (Test-Path $ssseInstallPath) {
                 Write-Host "  Removing SSSE folder..." -ForegroundColor Gray
+                try {
+                    & taskkill.exe /F /T /IM "SamsungSystemSupportEngine.exe" 2>&1 | Out-Null
+                    & taskkill.exe /F /T /IM "SamsungSystemSupportService.exe" 2>&1 | Out-Null
+                } catch {}
+                Start-Sleep -Milliseconds 500
                 Remove-Item -Path $ssseInstallPath -Recurse -Force -ErrorAction SilentlyContinue
+                if (Test-Path $ssseInstallPath) {
+                    try {
+                        Get-ChildItem -Path $ssseInstallPath -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object { $_.Attributes = 'Normal' }
+                        Remove-Item -Path $ssseInstallPath -Recurse -Force -ErrorAction SilentlyContinue
+                    } catch {}
+                }
                 if (-not (Test-Path $ssseInstallPath)) {
                     Write-Host "  ✓ SSSE folder removed" -ForegroundColor Green
+                } else {
+                    Write-Host "  ⚠ Notice: Could not completely remove $ssseInstallPath (files may be in use)." -ForegroundColor Yellow
                 }
             }
             
@@ -8475,6 +9228,8 @@ else {
     Write-Host "Creating registry spoof script..." -ForegroundColor Yellow
     New-RegistrySpoofBatch -OutputPath $batchScriptPath -BiosValues $biosValuesToUse
     New-MultiControlInitScript -OutputPath $multiControlScriptPath
+    $biosVerForInit = if ($biosValuesToUse -and $biosValuesToUse.BIOSVersion) { $biosValuesToUse.BIOSVersion } else { "P11CFP.025.251116.HQ" }
+    Initialize-SamsungSettingsRegistry -BiosVersion $biosVerForInit -TestMode $TestMode
 }
 
 if ($biosValuesToUse) {
@@ -9013,6 +9768,25 @@ else {
     else {
         Write-Host "  Your PC now identifies as a Samsung $DefaultBiosFamilyLabel" -ForegroundColor Gray
     }
+
+    # Patch Samsung Settings UWP LocalSettings with spoofed SMBIOS identity
+    # Required for Storage Share and Camera Share tabs to appear under Connected Devices
+    $localStateSysFamily = if ($biosValuesToUse -and $biosValuesToUse.SystemFamily) { $biosValuesToUse.SystemFamily } else { "Galaxy Book4" }
+    $localStateSysProd = if ($biosValuesToUse -and $biosValuesToUse.SystemProductName) { $biosValuesToUse.SystemProductName } else { "NP750XGJ-LG9IN" }
+    $localStateBaseBoard = if ($biosValuesToUse -and $biosValuesToUse.BaseBoardProduct) { $biosValuesToUse.BaseBoardProduct } else { $localStateSysProd }
+    $localStateSysMfr = if ($biosValuesToUse -and $biosValuesToUse.SystemManufacturer) { $biosValuesToUse.SystemManufacturer } else { "SAMSUNG ELECTRONICS CO., LTD." }
+    $localStateSysSku = if ($biosValuesToUse -and $biosValuesToUse.ProductSku) { $biosValuesToUse.ProductSku } else { "SCAI-A5A5-A5A5-RPLU-PCFP" }
+    $localStateSysSerial = if ($biosValuesToUse -and $biosValuesToUse.SerialNumber) { $biosValuesToUse.SerialNumber } else { "07D2010L51D044039" }
+
+    Write-Host "`nPatching Samsung Settings app data (Storage Share / Camera Share)..." -ForegroundColor Yellow
+    Update-SamsungSettingsLocalState `
+        -SystemFamily $localStateSysFamily `
+        -SystemProductName $localStateSysProd `
+        -BaseBoardProduct $localStateBaseBoard `
+        -SystemManufacturer $localStateSysMfr `
+        -SystemSKU $localStateSysSku `
+        -SerialNumber $localStateSysSerial `
+        -TestMode $TestMode
 }
 
 if ($TestMode) {

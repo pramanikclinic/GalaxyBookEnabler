@@ -5,6 +5,28 @@ All notable changes to Galaxy Book Enabler will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Donor Profile Exporter (`Export-GalaxyBookDonorProfile.ps1`)** - Added a dedicated capture tool for real Galaxy Book hardware to export sanitized SMBIOS, registry, drivers, WMI, and app profiles
+- **Standalone Dolby Atmos Enabler (`DolbyAtmosEnabler.ps1`)** - Unified installer and uninstaller for Galaxy Book Dolby DAX3 processing, audio profiles, and Dolby Access integration
+- **Launcher Script (`Run-GalaxyBookEnabler.bat`)** - Quick launcher that auto-detects PowerShell 7 and prompts to install it if missing
+- **`Initialize-SamsungSettingsRegistry`** - Seeds `HKLM:\SOFTWARE\Samsung\SamsungSettings` modules (protect battery, color engine, auto boot, Buds pop-up sync, performance profiles, backlight, etc.) to ensure Samsung Settings tabs function reliably on spoofed devices
+- **Storage Share & Camera Share Fix (`Update-SamsungSettingsLocalState`)** - Injects authentic Galaxy Book identity into Samsung Settings' UWP `LocalSettings` via `ApplicationDataManager`, populated `HKLM:\SOFTWARE\Samsung\StorageShare` (`DriveMap`, `VirtualDriveMap`), and configured `HKLM:\SOFTWARE\Samsung\StudioMode\Settings` virtual camera redirection (`ROOT#CAMERASHAREDRIVERSOURCE`)
+- **Samsung Phone App Support** - Automatically derives 14-character regional model string (e.g. `NP960XHA-KG2IN`), sets runtime `.env`, and injects `hwCache:model` and `hwCache:systemModel` into Chromium LevelDB with CRC32C checksums to bypass OOBE region & model restrictions
+- **Serial Number Registry Spoofing** - Injected `SystemSerialNumber` and `BaseBoardSerialNumber` into `HKLM\HARDWARE\DESCRIPTION\System\BIOS`, `HKLM\SYSTEM\HardwareConfig\Current`, and `HKLM\SYSTEM\CurrentControlSet\Control\SystemInformation`
+- **Automatic Service Management** - Added automatic startup and activation of `SamsungStorageShareService` and `SamsungCameraShareService`
+- **SSSE Service Registry Parameters** - Registered required `"Interface"="6"` and `"Version"` keys under `Services\GBeSupportService` and `Services\SamsungSystemSupportService` (including `Parameters` subkey)
+- **Batch Registry Persistence** - Appended Section 4 (`HKLM\SOFTWARE\Samsung`) to `GalaxyBookSpoof.bat` so module state persists across reboots
+- **PowerShell 5.1 & 7 Dual Compatibility** - Fixed UTF-8 BOM encoding and removed PS 7-only ternary operator in installer to guarantee flawless execution in both environments
+
+### Changed
+
+- **Fixed Package Name Collision** - Disambiguated `SamsungSettings` (`SamsungSettings1.5`) from `SamsungSettingsRuntime` and mapped `SamsungCloud` (`SamsungCloudPlatformManag`) in `Install-SamsungPackages` to ensure the Samsung Settings app is never falsely skipped as already installed
+- **Aligned SSSE Catalog Version** - Kept `$LATEST_SSSE_VERSION = "8.0.5.0"` matching Microsoft Update Catalog published driver availability
+- **Updated Model Blueprints** - Refreshed `750XGK` (Galaxy Book4) to `P11CFP.025.251116.HQ` and `960XHA` (Galaxy Book5 Pro) to `P05AMA.058.250810.01` with authentic BIOS samples
+
 ## [3.1.5] - 2026-03-19
 
 ### Added
