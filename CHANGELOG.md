@@ -10,8 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Donor Profile Exporter (`Export-GalaxyBookDonorProfile.ps1`)** - Added a dedicated capture tool for real Galaxy Book hardware to export sanitized SMBIOS, registry, drivers, WMI, and app profiles
-- **Standalone Dolby Atmos Enabler (`DolbyAtmosEnabler.ps1`)** - Unified installer and uninstaller for Galaxy Book Dolby DAX3 processing, audio profiles, and Dolby Access integration
-- **Launcher Script (`Run-GalaxyBookEnabler.bat`)** - Quick launcher that auto-detects PowerShell 7 and prompts to install it if missing
+- **Standalone Dolby Atmos Enabler (`DolbyAtmosEnabler.ps1`)** - Unified installer and uninstaller for Galaxy Book Dolby DAX3 processing, audio profiles, and Dolby Access integration with dedicated `-InstallApp` switch and interactive menu options
+- **Launcher Scripts** - Added `Run-GalaxyBookEnabler.bat` and `Run-DolbyAtmosEnabler.bat` for convenient one-click launching with PowerShell 7 detection, Windows PowerShell fallback, and argument forwarding
+- **Dolby Access Package Integration** - Added official Dolby Access Microsoft Store package (`9N0866FS04W8`) to `RecommendedPlus` in `Install-GalaxyBookEnabler.ps1`, documentation, and standalone installation workflow in `DolbyAtmosEnabler.ps1`
 - **`Initialize-SamsungSettingsRegistry`** - Seeds `HKLM:\SOFTWARE\Samsung\SamsungSettings` modules (protect battery, color engine, auto boot, Buds pop-up sync, performance profiles, backlight, etc.) to ensure Samsung Settings tabs function reliably on spoofed devices
 - **Storage Share & Camera Share Fix (`Update-SamsungSettingsLocalState`)** - Injects authentic Galaxy Book identity into Samsung Settings' UWP `LocalSettings` via `ApplicationDataManager`, populated `HKLM:\SOFTWARE\Samsung\StorageShare` (`DriveMap`, `VirtualDriveMap`), and configured `HKLM:\SOFTWARE\Samsung\StudioMode\Settings` virtual camera redirection (`ROOT#CAMERASHAREDRIVERSOURCE`)
 - **Samsung Phone App Support** - Automatically derives 14-character regional model string (e.g. `NP960XHA-KG2IN`), sets runtime `.env`, and injects `hwCache:model` and `hwCache:systemModel` into Chromium LevelDB with CRC32C checksums to bypass OOBE region & model restrictions

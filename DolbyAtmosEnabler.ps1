@@ -12,6 +12,8 @@
     Safely removes Dolby DAX3 APO bindings, services, files, and registry entries.
 .PARAMETER Status
     Displays the current installation and activation status of Dolby Atmos.
+.PARAMETER InstallApp
+    Installs or updates the Dolby Access application from the Microsoft Store.
 .PARAMETER DriverPath
     Custom path to exported Galaxy Book Dolby drivers folder. If omitted, automatically
     searches Drivers\DolbyDrivers and GalaxyBook-DonorProfile directories.
@@ -44,6 +46,9 @@ param(
 
     [Parameter(ParameterSetName = "Status")]
     [switch]$Status,
+
+    [Parameter(ParameterSetName = "InstallApp")]
+    [switch]$InstallApp,
 
     [Parameter(ParameterSetName = "Install")]
     [Parameter(ParameterSetName = "Interactive")]
@@ -232,6 +237,48 @@ function Get-DolbyInstallationStatus {
     }
 
     Write-Host "================================================================================`n" -ForegroundColor Cyan
+}
+
+# ==================== DOLBY ACCESS APP INSTALLER ====================
+function Install-DolbyAccessApp {
+    param([switch]$PromptReinstall)
+
+    Write-Host @"
+================================================================================
+                    DOLBY ACCESS APP INSTALLATION
+================================================================================
+"@ -ForegroundColor Cyan
+
+    $dolbyApp = Get-AppxPackage -Name "*DolbyAccess*" -ErrorAction SilentlyContinue
+    if ($dolbyApp) {
+        Write-Status "Dolby Access app is currently installed (Version: $($dolbyApp.Version))." -Status OK
+        if ($PromptReinstall) {
+            $choice = Read-Host "Would you like to reinstall or update Dolby Access? (Y/N) [Default: N]"
+            if ($choice -notmatch "^[Yy]") {
+                return
+            }
+        } else {
+            return
+        }
+    } else {
+        Write-Status "Dolby Access app is not currently installed." -Status WARN
+    }
+
+    $winget = Get-Command winget.exe -ErrorAction SilentlyContinue
+    if ($winget) {
+        Write-Host "Installing Dolby Access from Microsoft Store via winget (ID: 9N0866FS04W8)..." -ForegroundColor Cyan
+        & winget.exe install --id 9N0866FS04W8 --source msstore --accept-package-agreements --accept-source-agreements
+        $installedApp = Get-AppxPackage -Name "*DolbyAccess*" -ErrorAction SilentlyContinue
+        if ($installedApp) {
+            Write-Status "Dolby Access app installed successfully (Version: $($installedApp.Version))." -Status OK
+        } else {
+            Write-Status "Winget finished. If the app is not listed, you can install it from the Store." -Status WARN
+            Start-Process "ms-windows-store://pdp/?ProductId=9N0866FS04W8" -ErrorAction SilentlyContinue
+        }
+    } else {
+        Write-Status "winget is not available. Opening Microsoft Store page for Dolby Access..." -Status INFO
+        Start-Process "ms-windows-store://pdp/?ProductId=9N0866FS04W8" -ErrorAction SilentlyContinue
+    }
 }
 
 # ==================== INSTALLER LOGIC ====================
@@ -574,25 +621,7 @@ To activate Dolby Access:
 
     # Check Dolby Access UWP App
     if (-not $SkipAppInstall) {
-        $dolbyApp = Get-AppxPackage -Name "*DolbyAccess*" -ErrorAction SilentlyContinue
-        if (-not $dolbyApp) {
-            Write-Host "`nDolby Access app is not currently installed." -ForegroundColor Yellow
-            $winget = Get-Command winget.exe -ErrorAction SilentlyContinue
-            if ($winget) {
-                Write-Host "Installing Dolby Access from Microsoft Store via winget..." -ForegroundColor Cyan
-                & winget.exe install --id 9N0866FS04W8 --source msstore --accept-package-agreements --accept-source-agreements 2>&1 | Out-Null
-                $installedApp = Get-AppxPackage -Name "*DolbyAccess*" -ErrorAction SilentlyContinue
-                if ($installedApp) {
-                    Write-Status "Dolby Access app installed successfully." -Status OK
-                } else {
-                    Write-Status "Please install Dolby Access from the Microsoft Store (Search: 'Dolby Access')." -Status INFO
-                }
-            } else {
-                Write-Status "Please install Dolby Access from the Microsoft Store." -Status INFO
-            }
-        } else {
-            Write-Status "Dolby Access app is installed." -Status OK
-        }
+        Install-DolbyAccessApp
     }
 
     Write-Host @"
@@ -860,6 +889,11 @@ if ($Status) {
     exit 0
 }
 
+if ($InstallApp) {
+    Install-DolbyAccessApp -PromptReinstall
+    exit 0
+}
+
 if ($Install) {
     $elevArgs = @("-Install")
     if ($DriverPath) { $elevArgs += @("-DriverPath", "`"$DriverPath`"") }
@@ -893,18 +927,21 @@ Manage genuine Galaxy Book Dolby DAX3 Audio Processing Objects on your PC.
   [2] Check Installation Status
       Verify service, COM CLSIDs, active endpoint bindings & Dolby Access app.
 
-  [3] Uninstall / Restore Native Audio
+  [3] Install / Reinstall Dolby Access App
+      Download and install Dolby Access from Microsoft Store via winget.
+
+  [4] Uninstall / Restore Native Audio
       Remove Dolby DAX3 service, APO bindings, files, and registry entries.
 
-  [4] Uninstall & Wipe Drivers from DriverStore
+  [5] Uninstall & Wipe Drivers from DriverStore
       Complete cleanup including removal of staged INF packages via pnputil.
 
-  [5] Exit
+  [6] Exit
 
 ================================================================================
 "@ -ForegroundColor Cyan
 
-    $choice = Read-Host "Select an option [1-5]"
+    $choice = Read-Host "Select an option [1-6]"
     switch ($choice) {
         "1" {
             Ensure-AdminPrivileges -ForwardArgs @("-Install")
@@ -918,23 +955,28 @@ Manage genuine Galaxy Book Dolby DAX3 Audio Processing Objects on your PC.
             $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
         }
         "3" {
+            Install-DolbyAccessApp -PromptReinstall
+            Write-Host "`nPress any key to continue..." -ForegroundColor Yellow
+            $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+        }
+        "4" {
             Ensure-AdminPrivileges -ForwardArgs @("-Uninstall")
             Invoke-DolbyUninstall
             Write-Host "`nPress any key to continue..." -ForegroundColor Yellow
             $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
         }
-        "4" {
+        "5" {
             Ensure-AdminPrivileges -ForwardArgs @("-Uninstall", "-RemoveDrivers")
             $script:RemoveDrivers = $true
             Invoke-DolbyUninstall
             Write-Host "`nPress any key to continue..." -ForegroundColor Yellow
             $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
         }
-        "5" {
+        "6" {
             exit 0
         }
         default {
-            Write-Host "Invalid option. Please enter a number between 1 and 5." -ForegroundColor Yellow
+            Write-Host "Invalid option. Please enter a number between 1 and 6." -ForegroundColor Yellow
             Start-Sleep -Seconds 1
         }
     }
