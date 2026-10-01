@@ -751,46 +751,25 @@ unregisters Dolby APO COM classes, removes driver bindings, and deletes the serv
             $fxKey = Join-Path $ep.PSPath "FxProperties"
             if (Test-Path $fxKey) {
                 $endpointCleaned = $false
-                $sfxProps = @(
-                    "{D04E05A6-594B-4FB6-A80D-01AF5EED7D1D},1",
-                    "{D04E05A6-594B-4FB6-A80D-01AF5EED7D1D},5"
-                )
-                foreach ($sp in $sfxProps) {
-                    $val = (Get-ItemProperty -Path $fxKey -Name $sp -ErrorAction SilentlyContinue).$sp
-                    if ($val -and ($val -match "0EBD8505|0EBD8506|0EBD8507|0212AE2C|dolby")) {
-                        Remove-ItemProperty -Path $fxKey -Name $sp -Force -ErrorAction SilentlyContinue
-                        $endpointCleaned = $true
-                    }
-                }
-
-                $mfxProps = @(
-                    "{D04E05A6-594B-4FB6-A80D-01AF5EED7D1D},2"
-                )
-                foreach ($mp in $mfxProps) {
-                    $val = (Get-ItemProperty -Path $fxKey -Name $mp -ErrorAction SilentlyContinue).$mp
-                    if ($val -and ($val -match "0EBD8505|0EBD8506|0EBD8507|0212AE2C|dolby")) {
-                        Remove-ItemProperty -Path $fxKey -Name $mp -Force -ErrorAction SilentlyContinue
-                        $endpointCleaned = $true
-                    }
-                }
-
-                $efxProps = @(
-                    "{D04E05A6-594B-4FB6-A80D-01AF5EED7D1D},6"
-                )
-                foreach ($epProp in $efxProps) {
-                    $val = (Get-ItemProperty -Path $fxKey -Name $epProp -ErrorAction SilentlyContinue).$epProp
-                    if ($val -and ($val -match "0EBD8505|0EBD8506|0EBD8507|0212AE2C|dolby")) {
-                        Remove-ItemProperty -Path $fxKey -Name $epProp -Force -ErrorAction SilentlyContinue
-                        $endpointCleaned = $true
-                    }
-                }
 
                 $allProps = Get-ItemProperty -Path $fxKey -ErrorAction SilentlyContinue
                 if ($allProps) {
                     foreach ($prop in $allProps.PSObject.Properties) {
-                        if ($prop.Value -is [string] -and ($prop.Value -match "0EBD8505|0EBD8506|0EBD8507|0212AE2C")) {
-                            Remove-ItemProperty -Path $fxKey -Name $prop.Name -Force -ErrorAction SilentlyContinue
-                            $endpointCleaned = $true
+                        $propStr = if ($prop.Value -is [System.Array]) { $prop.Value -join " " } else { "$($prop.Value)" }
+                        if ($propStr -match "0EBD8505|0EBD8506|0EBD8507|0EBD8511|0EBD8512|0212AE2C|dolby") {
+                            if ($prop.Value -is [System.Array]) {
+                                $remaining = @($prop.Value | Where-Object { $_ -notmatch "0EBD8505|0EBD8506|0EBD8507|0EBD8511|0EBD8512|0212AE2C|dolby" })
+                                if ($remaining.Count -gt 0) {
+                                    Set-ItemProperty -Path $fxKey -Name $prop.Name -Value $remaining -Type MultiString -Force -ErrorAction SilentlyContinue
+                                    $endpointCleaned = $true
+                                } else {
+                                    Remove-ItemProperty -Path $fxKey -Name $prop.Name -Force -ErrorAction SilentlyContinue
+                                    $endpointCleaned = $true
+                                }
+                            } else {
+                                Remove-ItemProperty -Path $fxKey -Name $prop.Name -Force -ErrorAction SilentlyContinue
+                                $endpointCleaned = $true
+                            }
                         }
                     }
                 }
