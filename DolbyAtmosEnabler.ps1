@@ -68,6 +68,16 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+$script:ThisScriptPath = if ($PSCommandPath) {
+    $PSCommandPath
+} elseif ($PSScriptRoot) {
+    Join-Path $PSScriptRoot "DolbyAtmosEnabler.ps1"
+} elseif ($MyInvocation.PSCommandPath) {
+    $MyInvocation.PSCommandPath
+} else {
+    $MyInvocation.MyCommand.Definition
+}
+
 # ==================== STATUS LOGGER ====================
 function Write-Status {
     param(
@@ -97,13 +107,29 @@ function Ensure-AdminPrivileges {
     }
 
     Write-Host "⚡ Requesting administrator privileges..." -ForegroundColor Yellow
-    $scriptPath = $MyInvocation.MyCommand.Path
-    $argList = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "`"$scriptPath`"") + $ForwardArgs
+
+    $scriptPath = if ($script:ThisScriptPath) {
+        $script:ThisScriptPath
+    } elseif ($PSCommandPath) {
+        $PSCommandPath
+    } elseif ($MyInvocation.PSCommandPath) {
+        $MyInvocation.PSCommandPath
+    } elseif ($PSScriptRoot) {
+        Join-Path $PSScriptRoot "DolbyAtmosEnabler.ps1"
+    } else {
+        $MyInvocation.MyCommand.Definition
+    }
+
+    $psExe = if ($PSVersionTable.PSEdition -eq "Core") { "pwsh.exe" } else { "powershell.exe" }
+    $argList = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "`"$scriptPath`"")
+    if ($ForwardArgs) {
+        $argList += $ForwardArgs
+    }
 
     # Try gsudo
     $gsudo = Get-Command gsudo.exe -ErrorAction SilentlyContinue
     if ($gsudo) {
-        & gsudo powershell.exe $argList
+        & gsudo.exe $psExe $argList
         exit $LASTEXITCODE
     }
 
@@ -112,26 +138,20 @@ function Ensure-AdminPrivileges {
     if ($sudo) {
         $sudoCheck = & sudo.exe config 2>&1 | Out-String
         if ($sudoCheck -notmatch "disabled") {
-            & sudo.exe powershell.exe $argList
+            & sudo.exe $psExe $argList
             exit $LASTEXITCODE
         }
     }
 
     # Fallback to Start-Process -Verb RunAs
     try {
-        $p = Start-Process -FilePath "powershell.exe" -ArgumentList $argList -Verb RunAs -PassThru -Wait
+        $p = Start-Process -FilePath $psExe -ArgumentList $argList -Verb RunAs -PassThru -Wait
         exit $p.ExitCode
     }
     catch {
-        try {
-            $p = Start-Process -FilePath "pwsh.exe" -ArgumentList $argList -Verb RunAs -PassThru -Wait
-            exit $p.ExitCode
-        }
-        catch {
-            Write-Host "❌ Failed to elevate: $_" -ForegroundColor Red
-            Write-Host "Please right-click PowerShell and select 'Run as Administrator', then rerun this script." -ForegroundColor Yellow
-            exit 1
-        }
+        Write-Host "❌ Failed to elevate: $_" -ForegroundColor Red
+        Write-Host "Please right-click PowerShell and select 'Run as Administrator', then rerun this script." -ForegroundColor Yellow
+        exit 1
     }
 }
 
@@ -913,6 +933,8 @@ if ($Uninstall) {
 }
 
 # Interactive Menu (Default when no switches provided)
+Ensure-AdminPrivileges
+
 while ($true) {
     Clear-Host
     Write-Host @"
