@@ -764,10 +764,14 @@ unregisters Dolby APO COM classes, removes driver bindings, and deletes the serv
                                     $endpointCleaned = $true
                                 } else {
                                     Remove-ItemProperty -Path $fxKey -Name $prop.Name -Force -ErrorAction SilentlyContinue
+                                    $regPath = $fxKey -replace '^Microsoft\.PowerShell\.Core\\Registry::', '' -replace '^Registry::', '' -replace '^HKLM:\\', 'HKLM\' -replace '^HKLM:', 'HKLM'
+                                    & reg.exe delete "$regPath" /v "$($prop.Name)" /f 2>&1 | Out-Null
                                     $endpointCleaned = $true
                                 }
                             } else {
                                 Remove-ItemProperty -Path $fxKey -Name $prop.Name -Force -ErrorAction SilentlyContinue
+                                $regPath = $fxKey -replace '^Microsoft\.PowerShell\.Core\\Registry::', '' -replace '^Registry::', '' -replace '^HKLM:\\', 'HKLM\' -replace '^HKLM:', 'HKLM'
+                                & reg.exe delete "$regPath" /v "$($prop.Name)" /f 2>&1 | Out-Null
                                 $endpointCleaned = $true
                             }
                         }
