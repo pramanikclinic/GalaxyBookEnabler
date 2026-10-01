@@ -187,6 +187,7 @@ Recommended + additional working apps:
 - Samsung Parental Controls
 - Live Wallpaper
 - Galaxy Book Smart Switch
+- Dolby Access
 
 ### Full Experience
 
@@ -233,6 +234,7 @@ Pick individual packages by category with detailed descriptions and warnings.
 | Galaxy Buds | ✅ Working | No | - |
 | Samsung Parental Controls | ✅ Working | No | - |
 | AI Select | ✅ Working | No | - |
+| Dolby Access | ✅ Working | No | Dolby Atmos & spatial audio control |
 | Nearby Devices | ✅ Working | No | - |
 | Storage Share | ✅ Working | No | - |
 | Second Screen | ⚠️ Limited | **Yes** | Works on Wi-Fi 6/6E/7 (AX/BE), not on Wi-Fi 5 (AC) |
