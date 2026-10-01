@@ -193,10 +193,20 @@ function Get-DolbyInstallationStatus {
     }
 
     # 2. Check Service Binary & Directory
-    $svcExe = "C:\Windows\System32\dolbyaposvc\DolbyDAXAPIService.exe"
-    if (Test-Path $svcExe) {
+    $serviceImagePath = (Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Services\DolbyDAXAPI' -ErrorAction SilentlyContinue).ImagePath
+    $svcExe = if ($serviceImagePath) {
+        $serviceImagePath.Trim('"').Trim()
+    } else {
+        $possibleExes = @(
+            "C:\Windows\System32\dolbyaposvc\DAX3API.exe",
+            "C:\Windows\System32\dolbyaposvc\DolbyDAXAPIService.exe"
+        )
+        $possibleExes | Where-Object { Test-Path $_ } | Select-Object -First 1
+    }
+
+    if ($svcExe -and (Test-Path $svcExe)) {
         $ver = (Get-ItemProperty $svcExe -ErrorAction SilentlyContinue).VersionInfo.ProductVersion
-        Write-Host "  Service Binary:    Present ($ver)" -ForegroundColor Green
+        Write-Host "  Service Binary:    Present ($svcExe - v$ver)" -ForegroundColor Green
     } else {
         Write-Host "  Service Binary:    Missing ($svcExe)" -ForegroundColor Red
     }
@@ -227,15 +237,22 @@ function Get-DolbyInstallationStatus {
         Get-ChildItem -Path $renderKey -ErrorAction SilentlyContinue | ForEach-Object {
             $fxKey = Join-Path $_.PSPath "FxProperties"
             if (Test-Path $fxKey) {
-                $sfx = (Get-ItemProperty -Path $fxKey -Name "{D04E05A6-594B-4FB6-A80D-01AF5EED7D1D},5" -ErrorAction SilentlyContinue)."{D04E05A6-594B-4FB6-A80D-01AF5EED7D1D},5"
-                if ($sfx -eq $sfxGuid) {
-                    $activeBindings++
+                $fxProps = Get-ItemProperty -Path $fxKey -ErrorAction SilentlyContinue
+                if ($fxProps) {
+                    $matched = $false
+                    foreach ($prop in $fxProps.PSObject.Properties) {
+                        if ($prop.Value -match "0EBD8505|0EBD8506|0EBD8507|0EBD8511|0EBD8512") {
+                            $matched = $true
+                            break
+                        }
+                    }
+                    if ($matched) { $activeBindings++ }
                 }
             }
         }
     }
     if ($activeBindings -gt 0) {
-        Write-Host "  Active Endpoints:  $activeBindings audio render endpoint(s) bound to Dolby APO" -ForegroundColor Green
+        Write-Host "  Active Endpoints:  $activeBindings audio render endpoint(s) bound to Dolby DAX3 APO" -ForegroundColor Green
     } else {
         Write-Host "  Active Endpoints:  No endpoints bound to Dolby DAX3 APO" -ForegroundColor Yellow
     }
@@ -492,9 +509,13 @@ To activate Dolby Access:
     }
 
     # Register/Update DolbyDAXAPI service
-    $serviceExe = Join-Path $destSvcDir "DolbyDAXAPIService.exe"
+    $serviceExe = @(
+        (Join-Path $destSvcDir "DAX3API.exe"),
+        (Join-Path $destSvcDir "DolbyDAXAPIService.exe")
+    ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+
     $daxSvc = Get-Service -Name "DolbyDAXAPI" -ErrorAction SilentlyContinue
-    if (-not $daxSvc -and (Test-Path $serviceExe)) {
+    if (-not $daxSvc -and $serviceExe) {
         & sc.exe create DolbyDAXAPI binPath= "`"$serviceExe`"" start= auto DisplayName= "Dolby DAX API Service" 2>&1 | Out-Null
         & sc.exe description DolbyDAXAPI "Dolby Audio Processing Object (APO) service for Galaxy Book audio enhancement and spatial processing." 2>&1 | Out-Null
     }
@@ -511,10 +532,15 @@ To activate Dolby Access:
         "FAC" = "{0EBD8512-17BB-4AE7-AD76-E86F99A425E9}"
     }
 
-    $daxDll = Join-Path $destSvcDir "dax3_apoksl.dll"
-    if (-not (Test-Path $daxDll)) {
-        $foundDll = Get-ChildItem -Path $dolbyDir -Filter "dax3_apoksl.dll" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+    $daxDll = @(
+        (Join-Path $destSvcDir "DolbyDax3Apo.dll"),
+        (Join-Path $destSvcDir "dax3_apoksl.dll")
+    ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+    if (-not $daxDll) {
+        $foundDll = Get-ChildItem -Path $dolbyDir -Include "DolbyDax3Apo.dll","dax3_apoksl.dll" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
         if ($foundDll) {
+            $daxDll = Join-Path $destSvcDir $foundDll.Name
             Copy-Item -Path $foundDll.FullName -Destination $daxDll -Force -ErrorAction SilentlyContinue
         }
     }
