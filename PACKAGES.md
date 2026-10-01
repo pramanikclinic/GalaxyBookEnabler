@@ -81,7 +81,6 @@ These packages are essential for Samsung ecosystem functionality and are auto-in
 | Samsung Gallery | 9NBLGGH4N9R9 | Photo/video gallery with cloud sync |
 | Samsung Studio | 9P312B4TZFFH | Photo and video editing suite |
 | Samsung Studio for Gallery | 9NND8BT5WFC5 | Gallery-integrated editing tools |
-| Dolby Access | 9N0866FS04W8 | Dolby Atmos & spatial sound control panel |
 | Live Wallpaper | 9N1G7F25FXCB | Animated wallpapers |
 
 ### Productivity
@@ -169,7 +168,7 @@ Core + essential working Samsung apps:
 - Galaxy Buds
 - Samsung Pass
 
-### Recommended Plus (30 packages)
+### Recommended Plus (29 packages)
 Recommended + additional working apps:
 - AI Select, Samsung Gallery
 - Samsung Studio, Studio for Gallery
@@ -177,15 +176,14 @@ Recommended + additional working apps:
 - Samsung Flow, SmartThings
 - Parental Controls, Live Wallpaper
 - Galaxy Book Smart Switch
-- Dolby Access
 
-### Full Experience (33 packages)
+### Full Experience (32 packages)
 Recommended Plus + apps requiring extra setup:
 - Samsung Device Care
 - Samsung Find
 - Quick Search
 
-### Everything (35 packages)
+### Everything (34 packages)
 All packages including non-working ones:
 - Samsung Recovery
 - Samsung Update
@@ -197,10 +195,10 @@ Pick individual packages by category with full control over what gets installed.
 
 ## Quick Stats
 
-- **Total Packages**: 36
+- **Total Packages**: 35
 - **Core (Required)**: 9
 - **Recommended (Essential)**: 10
-- **Recommended Plus (Additional)**: 11
+- **Recommended Plus (Additional)**: 10
 - **Requires Extra Steps**: 3
 - **Non-Working**: 2
 - **Legacy**: 1

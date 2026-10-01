@@ -3579,13 +3579,6 @@ $script:PackageDatabase = @{
             Category    = "Utilities"
             Description = "Transfer data to new Galaxy Book"
             Status      = "Working"
-        },
-        @{
-            Name        = "Dolby Access"
-            Id          = "9N0866FS04W8"
-            Category    = "Media"
-            Description = "Dolby Atmos & spatial sound control panel"
-            Status      = "Working"
         }
     )
     
@@ -6233,7 +6226,6 @@ function Get-InstalledSamsungPackages {
                 $_.Name -like "*SecondScreen*" -or   # Second Screen
                 $_.Name -like "*MyDevices*" -or      # Nearby Devices
                 $_.Name -like "*SmartThings*" -or    # SmartThings
-                $_.Name -like "*DolbyAccess*" -or    # Dolby Access
                 $_.Name -like "*Sidia*"              # Live Wallpaper
             }
         }
@@ -6249,7 +6241,6 @@ function Get-InstalledSamsungPackages {
                 $_.Name -like "*SecondScreen*" -or
                 $_.Name -like "*MyDevices*" -or
                 $_.Name -like "*SmartThings*" -or
-                $_.Name -like "*DolbyAccess*" -or
                 $_.Name -like "*Sidia*"
             }
         }
